@@ -1,0 +1,59 @@
+# ── Dependencies ──
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# ── Next.js Build Output ──
+/.next/
+/out/
+/build
+/dist
+
+# ── Environment Variables & Secrets ──
+.env
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ── Vercel Deployment ──
+.vercel
+
+# ── TypeScript & Cache ──
+*.tsbuildinfo
+
+# ── Debug Logs ──
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── Operating System Files ──
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ── IDE & Editor Settings ──
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# ── Python / Processing Scripts & Virtual Environments ──
+__pycache__/
+*.py[cod]
+*$py.class
+.venv
+venv/
+ENV/
+*.py
+
+# ── Large 3D Models / Binaries ──
+*.glb
+*.gltf

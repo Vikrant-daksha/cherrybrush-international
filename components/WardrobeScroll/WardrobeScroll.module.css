@@ -1,0 +1,137 @@
+/* ══════════════════════════════════════════════
+   WARDROBE SCROLL VIEWPORT & INTERACTION
+   ══════════════════════════════════════════════ */
+
+.container {
+  position: relative;
+  width: 100%;
+  max-width: 1700px;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+
+.viewport {
+  position: relative;
+  width: 100%;
+  height: 520px;
+  background: transparent;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+/* ── Fading Side Overlays ── */
+.fadeLeft,
+.fadeRight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 150px;
+  pointer-events: none; /* Allows user to drag/click through the fade */
+  z-index: 5;
+  transition: opacity 0.3s ease;
+}
+
+.fadeLeft {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    #fafaf7 0%,
+    rgba(250, 250, 247, 0.8) 25%,
+    rgba(250, 250, 247, 0) 100%
+  );
+}
+
+.fadeRight {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    #fafaf7 0%,
+    rgba(250, 250, 247, 0.8) 25%,
+    rgba(250, 250, 247, 0) 100%
+  );
+}
+
+/* ── Gold Glassmorphic Navigation Buttons ── */
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid #d4b373; /* Luxury gold border */
+  background: rgba(250, 250, 247, 0.8); /* Glassmorphic background */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #6b4f3a; /* Dark walnut color for the chevron */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow:
+    0 4px 12px rgba(107, 79, 58, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.navButton:hover {
+  background: rgba(250, 250, 247, 0.95);
+  border-color: #c8973a;
+  color: #3d2b1f;
+  transform: translateY(-50%) scale(1.08);
+  box-shadow:
+    0 6px 18px rgba(107, 79, 58, 0.15),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+}
+
+.navButton:active {
+  transform: translateY(-50%) scale(0.96);
+}
+
+.navButton:disabled {
+  opacity: 0; /* Fade out completely when disabled to keep the UI clean */
+  pointer-events: none;
+  cursor: default;
+}
+
+.prevButton {
+  left: 24px;
+}
+
+.nextButton {
+  right: 24px;
+}
+
+/* ── SVG Arrow / Chevron Styling ── */
+.navButton svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ── Responsive adjustments ── */
+@media (max-width: 768px) {
+  .viewport {
+    height: 440px;
+  }
+  .fadeLeft,
+  .fadeRight {
+    width: 60px; /* Thinner fade on mobile */
+  }
+  .navButton {
+    width: 40px;
+    height: 40px;
+  }
+  .prevButton {
+    left: 12px;
+  }
+  .nextButton {
+    right: 12px;
+  }
+}

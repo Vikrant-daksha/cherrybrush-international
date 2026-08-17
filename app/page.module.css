@@ -1,0 +1,47 @@
+.main {
+  min-height: calc(100vh - 64px);
+}
+
+/* ── Wardrobe section ── */
+.wardrobeSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 56px;
+}
+
+/* ── Section header copy ── */
+.sectionHeader {
+  text-align: center;
+  max-width: 520px;
+  padding: 0 24px;
+  margin-bottom: 8px;
+}
+
+.sectionEyebrow {
+  font-family: var(--font-dm-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-walnut-light);
+  margin-bottom: 10px;
+}
+
+.sectionTitle {
+  font-family: var(--font-outfit);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  color: var(--color-walnut-deep);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin-bottom: 12px;
+}
+
+.sectionSub {
+  font-family: var(--font-dm-sans);
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 0;
+}

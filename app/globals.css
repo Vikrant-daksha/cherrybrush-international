@@ -1,0 +1,143 @@
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&display=swap");
+/* ══════════════════════════════════════════════
+   CHERRYBRUSH — GLOBAL DESIGN TOKENS
+   Scandinavian Birch Palette
+══════════════════════════════════════════════ */
+:root {
+  /* ── Colour Palette ── */
+  --color-birch-cream: #f5efe0;
+  --color-birch-sand: #e8d9c0;
+  --color-birch-warm: #dcc9a8;
+  --color-walnut-dark: #6b4f3a;
+  --color-walnut-deep: #3d2b1f;
+  --color-walnut-light: #a88a6a;
+  --color-sage: #8a9e8b;
+  --color-cherry: #a0604a;
+  --color-off-white: #fafaf7;
+  --color-text-primary: #3d2b1f;
+  --color-text-muted: #8a7060;
+  --color-text-light: #b0967c;
+  --color-border: rgba(107, 79, 58, 0.12);
+
+  /* ── Typography ── */
+  --font-outfit: "Outfit", sans-serif;
+  --font-dm-sans: "DM Sans", sans-serif;
+  --font-serif: "Cormorant Garamond", serif;
+  --font-cormorant: "Cormorant Garamond", serif;
+
+  /* ── Spacing ── */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 48px;
+  --space-2xl: 80px;
+
+  /* ── Radius ── */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-full: 999px;
+
+  /* ── Shadows ── */
+  --shadow-sm: 0 2px 8px rgba(107, 79, 58, 0.1);
+  --shadow-md: 0 8px 24px rgba(107, 79, 58, 0.15);
+  --shadow-lg: 0 20px 48px rgba(107, 79, 58, 0.2);
+}
+
+/* ══════════════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════════════ */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-dm-sans);
+    background-color: var(--color-off-white);
+    color: var(--color-text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+    /* Subtle warm texture on page background */
+    background-image: radial-gradient(
+      ellipse 80% 60% at 50% -10%,
+      rgba(232, 217, 192, 0.35) 0%,
+      transparent 70%
+    );
+  }
+
+  a {
+    color: inherit;
+  }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  img,
+  video {
+    max-width: 100%;
+    display: block;
+  }
+}
+
+/* ── Page background warm gradient ── */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 70% 50% at 20% 80%,
+      rgba(245, 239, 224, 0.5) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 80% 20%,
+      rgba(232, 217, 192, 0.3) 0%,
+      transparent 60%
+    );
+  z-index: -1;
+}
+
+/* ══════════════════════════════════════════════
+   UTILITY CLASSES
+══════════════════════════════════════════════ */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+#hero-section {
+  background-image: url("../public/sample.png");
+  background-size: cover;
+  background-position: center;
+  height: 100vh;
+}
