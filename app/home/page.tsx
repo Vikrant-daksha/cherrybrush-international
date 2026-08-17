@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import Polaroid from "@/components/Polaroid/Polaroid";
 import NailProductCard from "@/components/NailProductCard/NailProductCard";
 import ChooseYourMood from "@/components/discover/ChooseYourMood";
@@ -28,8 +27,12 @@ const Home = () => {
         className="relative w-full min-h-[85vh] md:h-[85vh] select-none overflow-hidden flex flex-col md:flex-row"
       >
         <div className="flex gap-4 justify-around py-2 px-4 bg-neutral-900/80 text-white text-xs uppercase tracking-widest absolute top-4 left-4 z-50 rounded-lg">
-          <Link href="/3dwood" className="hover:text-[#c88389]">Design with actual 3d</Link>
-          <Link href="/" className="hover:text-[#c88389]">Design without 3d</Link>
+          <Link href="/3dwood" className="hover:text-[#c88389]">
+            Design with actual 3d
+          </Link>
+          <Link href="/" className="hover:text-[#c88389]">
+            Design without 3d
+          </Link>
         </div>
         {/* Text and Button Container - Width Halfed */}
         <div className="w-full md:w-1/2 h-1/2 md:h-full flex flex-col justify-center px-8 md:px-16 lg:px-24 text-white z-10 relative py-12 md:py-0">
@@ -59,12 +62,9 @@ const Home = () => {
 
         {/* Polaroid Container - Width Halfed & Centered */}
         <div className="w-full md:w-1/2 h-1/2 md:h-full flex items-center justify-center z-10 relative">
-          <Image
-            src="/sample_processed.png"
+          <img
+            src="sample_processed.png"
             alt="Hero Background"
-            width={480}
-            height={600}
-            priority
             className="absolute object-contain h-full right-42 top-24 z-10 filter drop-shadow-[0_20px_45px_rgba(61,43,31,0.42)]"
           />
           <div className="absolute top-32 right-48 z-0">
