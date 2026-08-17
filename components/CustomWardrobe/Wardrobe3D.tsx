@@ -224,16 +224,16 @@ export default function Wardrobe3D({
     const woodTextureFolder = "Plaster001_2K-JPG";
 
     // 1. Shared product & kit textures
-    const productTex = textureManager.loadTexture("/product.png", manager, {
+    const productTex = textureManager.loadTexture("/product.webp", manager, {
       colorSpace: THREE.SRGBColorSpace,
     });
-    const kitTex = textureManager.loadTexture("/complete_kit.png", manager, {
+    const kitTex = textureManager.loadTexture("/complete_kit.webp", manager, {
       colorSpace: THREE.SRGBColorSpace,
     });
 
-    // 2. Shared Wood PBR Textures (Single network request per map)
+    // 2. Shared Wood PBR Textures (Optimized 1K WebP - Single network request per map)
     const colorTexHoriz = textureManager.loadTexture(
-      `/${woodTextureFolder}/${woodTextureFolder}_Color.jpg`,
+      `/${woodTextureFolder}/${woodTextureFolder}_Color.webp`,
       manager,
       {
         colorSpace: THREE.SRGBColorSpace,
@@ -244,7 +244,7 @@ export default function Wardrobe3D({
       }
     );
     const normalTexHoriz = textureManager.loadTexture(
-      `/${woodTextureFolder}/${woodTextureFolder}_NormalGL.jpg`,
+      `/${woodTextureFolder}/${woodTextureFolder}_NormalGL.webp`,
       manager,
       {
         wrapS: THREE.RepeatWrapping,
@@ -254,7 +254,7 @@ export default function Wardrobe3D({
       }
     );
     const roughTexHoriz = textureManager.loadTexture(
-      `/${woodTextureFolder}/${woodTextureFolder}_Roughness.jpg`,
+      `/${woodTextureFolder}/${woodTextureFolder}_Roughness.webp`,
       manager,
       {
         wrapS: THREE.RepeatWrapping,
@@ -265,7 +265,7 @@ export default function Wardrobe3D({
     );
 
     const colorTexVert = textureManager.loadTexture(
-      `/${woodTextureFolder}/${woodTextureFolder}_Color.jpg`,
+      `/${woodTextureFolder}/${woodTextureFolder}_Color.webp`,
       manager,
       {
         colorSpace: THREE.SRGBColorSpace,
@@ -276,7 +276,7 @@ export default function Wardrobe3D({
       }
     );
     const normalTexVert = textureManager.loadTexture(
-      `/${woodTextureFolder}/${woodTextureFolder}_NormalGL.jpg`,
+      `/${woodTextureFolder}/${woodTextureFolder}_NormalGL.webp`,
       manager,
       {
         wrapS: THREE.RepeatWrapping,
@@ -286,7 +286,7 @@ export default function Wardrobe3D({
       }
     );
     const roughTexVert = textureManager.loadTexture(
-      `/${woodTextureFolder}/${woodTextureFolder}_Roughness.jpg`,
+      `/${woodTextureFolder}/${woodTextureFolder}_Roughness.webp`,
       manager,
       {
         wrapS: THREE.RepeatWrapping,

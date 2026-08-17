@@ -29,16 +29,16 @@ interface WardrobeScrollCanvasProps {
 }
 
 const DEFAULT_PRODUCTS: Product[] = [
-  { name: "Oud Wood", price: "$210", image: "/product.png" },
-  { name: "Tuscan Leather", price: "$250", image: "/product.png" },
-  { name: "Tobacco Vanille", price: "$235", image: "/product.png" },
-  { name: "Lost Cherry", price: "$280", image: "/product.png" },
-  { name: "Soleil Blanc", price: "$195", image: "/product.png" },
-  { name: "Neroli Portofino", price: "$180", image: "/product.png" },
-  { name: "Rose Prick", price: "$260", image: "/product.png" },
-  { name: "Bitter Peach", price: "$275", image: "/product.png" },
-  { name: "White Suede", price: "$200", image: "/product.png" },
-  { name: "Fucking Fabulous", price: "$310", image: "/product.png" },
+  { name: "Oud Wood", price: "$210", image: "/product.webp" },
+  { name: "Tuscan Leather", price: "$250", image: "/product.webp" },
+  { name: "Tobacco Vanille", price: "$235", image: "/product.webp" },
+  { name: "Lost Cherry", price: "$280", image: "/product.webp" },
+  { name: "Soleil Blanc", price: "$195", image: "/product.webp" },
+  { name: "Neroli Portofino", price: "$180", image: "/product.webp" },
+  { name: "Rose Prick", price: "$260", image: "/product.webp" },
+  { name: "Bitter Peach", price: "$275", image: "/product.webp" },
+  { name: "White Suede", price: "$200", image: "/product.webp" },
+  { name: "Fucking Fabulous", price: "$310", image: "/product.webp" },
 ];
 
 export default function WardrobeScrollCanvas({
@@ -118,23 +118,23 @@ export default function WardrobeScrollCanvas({
     const dynamicTextures: THREE.Texture[] = [];
 
     const colorTexHoriz = textureLoader.load(
-      `/${woodTextureFolder}/${woodTextureFolder}_Color.jpg`,
+      `/${woodTextureFolder}/${woodTextureFolder}_Color.webp`,
     );
     const normalTexHoriz = textureLoader.load(
-      `/${woodTextureFolder}/${woodTextureFolder}_NormalGL.jpg`,
+      `/${woodTextureFolder}/${woodTextureFolder}_NormalGL.webp`,
     );
     const roughTexHoriz = textureLoader.load(
-      `/${woodTextureFolder}/${woodTextureFolder}_Roughness.jpg`,
+      `/${woodTextureFolder}/${woodTextureFolder}_Roughness.webp`,
     );
 
     const colorTexVert = textureLoader.load(
-      `/${woodTextureFolder}/${woodTextureFolder}_Color.jpg`,
+      `/${woodTextureFolder}/${woodTextureFolder}_Color.webp`,
     );
     const normalTexVert = textureLoader.load(
-      `/${woodTextureFolder}/${woodTextureFolder}_NormalGL.jpg`,
+      `/${woodTextureFolder}/${woodTextureFolder}_NormalGL.webp`,
     );
     const roughTexVert = textureLoader.load(
-      `/${woodTextureFolder}/${woodTextureFolder}_Roughness.jpg`,
+      `/${woodTextureFolder}/${woodTextureFolder}_Roughness.webp`,
     );
 
     colorTexHoriz.colorSpace = THREE.SRGBColorSpace;
@@ -614,7 +614,7 @@ export default function WardrobeScrollCanvas({
       const shelfTopY = 0.8 + 0.12 + 0.012;
       boxResult.group.position.set(0, shelfTopY + boxResult.yOffset, 0);
 
-      const pTex = textureLoader.load(product.image || "/product.png");
+      const pTex = textureLoader.load(product.image || "/product.webp");
       pTex.colorSpace = THREE.SRGBColorSpace;
       dynamicTextures.push(pTex);
 
@@ -779,9 +779,20 @@ export default function WardrobeScrollCanvas({
     window.addEventListener("resize", handleResize);
     handleResize();
 
+    let isVisible = true;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+      },
+      { threshold: 0.05 }
+    );
+    observer.observe(container);
+
     let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
+      if (!isVisible) return; // Skip rendering when off-screen to save GPU
+
       camera.position.x += (targetCameraX.current - camera.position.x) * 0.08;
 
       // ADJUST VERTICAL ANGLE LOOKAT Y HERE:
@@ -793,6 +804,7 @@ export default function WardrobeScrollCanvas({
     animate();
 
     return () => {
+      observer.disconnect();
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationFrameId);
       renderer.dispose();
