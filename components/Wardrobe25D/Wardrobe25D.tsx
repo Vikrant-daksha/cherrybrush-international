@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import styles from "./Wardrobe25D.module.css";
 
 interface Product {
@@ -135,9 +136,11 @@ export default function Wardrobe25D() {
                 <p className={styles.featureSub}>Everything you need for the perfect application.</p>
                 <span className={styles.featurePrice}>₹599</span>
                 
-                <img
+                <Image
                   src="/complete_kit.png"
                   alt="The Complete Kit"
+                  width={180}
+                  height={140}
                   className={styles.featureKitImage}
                 />
 
@@ -167,7 +170,7 @@ export default function Wardrobe25D() {
                     className={styles.tiltedProductBox}
                     onClick={() => handleSelect({ name: item.name, price: item.price })}
                   >
-                    <img src={item.image} alt={item.name} className={styles.productImage} />
+                    <Image src={item.image} alt={item.name} width={160} height={160} className={styles.productImage} />
                   </div>
                 </div>
 
@@ -214,7 +217,7 @@ export default function Wardrobe25D() {
                     className={styles.tiltedProductBox}
                     onClick={() => handleSelect({ name: item.name, price: item.price })}
                   >
-                    <img src={item.image} alt={item.name} className={styles.productImage} />
+                    <Image src={item.image} alt={item.name} width={160} height={160} className={styles.productImage} />
                   </div>
                 </div>
 
@@ -271,7 +274,7 @@ export default function Wardrobe25D() {
                   className={styles.tiltedProductBox}
                   onClick={() => handleSelect({ name: PRODUCTS_COL3[0].name, price: PRODUCTS_COL3[0].price })}
                 >
-                  <img src={PRODUCTS_COL3[0].image} alt={PRODUCTS_COL3[0].name} className={styles.productImage} />
+                  <Image src={PRODUCTS_COL3[0].image} alt={PRODUCTS_COL3[0].name} width={160} height={160} className={styles.productImage} />
                 </div>
               </div>
 
@@ -313,7 +316,7 @@ export default function Wardrobe25D() {
                   className={styles.tiltedProductBox}
                   onClick={() => handleSelect({ name: PRODUCTS_COL3[1].name, price: PRODUCTS_COL3[1].price })}
                 >
-                  <img src={PRODUCTS_COL3[1].image} alt={PRODUCTS_COL3[1].name} className={styles.productImage} />
+                  <Image src={PRODUCTS_COL3[1].image} alt={PRODUCTS_COL3[1].name} width={160} height={160} className={styles.productImage} />
                 </div>
               </div>
 

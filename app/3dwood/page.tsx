@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import CustomWardrobe from "@/components/CustomWardrobe/CustomWardrobe";
 import WardrobeScroll from "@/components/WardrobeScroll/WardrobeScroll";
 import styles from "../page.module.css";
@@ -48,7 +49,14 @@ export default function HomePage() {
           </button>
           <div className="text-xl "></div>
         </div>
-        <img src="/hero-white.png" className="w-full object-center"></img>
+        <Image
+          src="/hero-white.png"
+          alt="CherryBrush Luxury Hero"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
       </div>
 
       <div className="mt-80 text-center">

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 
 interface FAQItem {
   question: string;
@@ -45,10 +46,12 @@ export default function FAQ() {
         <div className="flex flex-col lg:flex-row items-center bg-[#fafaf7] rounded-3xl overflow-hidden border border-[#6b4f3a]/15 shadow-[0_4px_24px_rgba(107,79,58,0.03)]">
           {/* Left image with elegant curve matching the visual design */}
           <div className="w-full lg:w-2/5 h-[350px] lg:h-[480px] relative overflow-hidden shrink-0">
-            <img
+            <Image
               src="/sample_processed.png"
               alt="Elegant Hand with CherryBrush Nails"
-              className="w-full h-full object-cover object-left-top"
+              fill
+              sizes="(max-width: 1024px) 100vw, 40vw"
+              className="object-cover object-left-top"
             />
             {/* Soft pink overlay gradient */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#fafaf7]/10" />

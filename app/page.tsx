@@ -1,3 +1,5 @@
+import Link from "next/link";
+import Image from "next/image";
 import Wardrobe25D from "@/components/Wardrobe25D/Wardrobe25D";
 import WardrobeScroll from "@/components/WardrobeScroll/WardrobeScroll";
 import styles from "./page.module.css";
@@ -31,10 +33,15 @@ const TRENDING = [
 export default function HomePage() {
   return (
     <main className={styles.main}>
-      <div className="flex gap-4 justify-around">
-        <a href="/3dwood">Design with actual 3d</a> <br />
-        <a href="/home">Redesign without 3d</a>
+      <div className="flex gap-4 justify-around py-3 bg-neutral-900 text-white text-xs uppercase tracking-widest">
+        <Link href="/3dwood" className="hover:text-[#c88389]">
+          Design with actual 3d
+        </Link>
+        <Link href="/home" className="hover:text-[#c88389]">
+          Redesign without 3d
+        </Link>
       </div>
+
       {/* ── Hero Section ── */}
       <div id="hero-section" className="relative w-full h-[90vh] overflow-clip">
         <div className="absolute left-[10vh] top-1/3 z-10">
@@ -49,10 +56,13 @@ export default function HomePage() {
             SHOP COLLECTION
           </button>
         </div>
-        <img
+        <Image
           src="/hero-white.png"
           alt="CherryBrush Luxury Hero"
-          className="w-full h-full object-cover object-center"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
         />
       </div>
 
@@ -72,17 +82,17 @@ export default function HomePage() {
       </section>
 
       {/* ── Bestsellers Showcase ── */}
-      {/* <section className={styles.wardrobeSection} style={{ marginTop: "80px" }}>
+      <section className={styles.wardrobeSection} style={{ marginTop: "80px" }}>
         <WardrobeScroll products={BEST_SELLERS} headerText="BESTSELLERS" />
-      </section> */}
+      </section>
 
       {/* ── Trending Showcase ── */}
-      {/* <section
+      <section
         className={styles.wardrobeSection}
         style={{ marginTop: "80px", marginBottom: "80px" }}
       >
         <WardrobeScroll products={TRENDING} headerText="TRENDING NOW" />
-      </section> */}
+      </section>
     </main>
   );
 }

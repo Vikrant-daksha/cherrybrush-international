@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Polaroid from "@/components/Polaroid/Polaroid";
 import NailProductCard from "@/components/NailProductCard/NailProductCard";
 import ChooseYourMood from "@/components/discover/ChooseYourMood";
@@ -58,9 +59,12 @@ const Home = () => {
 
         {/* Polaroid Container - Width Halfed & Centered */}
         <div className="w-full md:w-1/2 h-1/2 md:h-full flex items-center justify-center z-10 relative">
-          <img
-            src="sample_processed.png"
+          <Image
+            src="/sample_processed.png"
             alt="Hero Background"
+            width={480}
+            height={600}
+            priority
             className="absolute object-contain h-full right-42 top-24 z-10 filter drop-shadow-[0_20px_45px_rgba(61,43,31,0.42)]"
           />
           <div className="absolute top-32 right-48 z-0">

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 
 export interface ColorSwatch {
   hex: string;
@@ -117,10 +118,12 @@ export default function NailProductCard({
           onMouseEnter={() => setShowQuickView(true)}
           onMouseLeave={() => setShowQuickView(false)}
         >
-          <img
+          <Image
             src={imageSrc}
             alt={imageAlt}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            fill
+            sizes="(max-width: 768px) 100vw, 33vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
 
           {/* Quick View overlay */}

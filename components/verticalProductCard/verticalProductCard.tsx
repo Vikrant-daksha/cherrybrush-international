@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 
 export interface ColorSwatch {
   hex: string;
@@ -66,15 +67,15 @@ function StarRating({ rating }: { rating: number }) {
 
 export default function VerticalProductCard({
   imageSrc,
-  imageAlt = "Nail product",
+  imageAlt = "Nail Product",
   name,
   collection,
-  style,
+  style: styleLabel,
   description,
   price,
   badge,
-  rating = 4.5,
-  reviewCount,
+  rating = 5,
+  reviewCount = 0,
   colors = [],
   extraColorsCount = 0,
   accentColor = "#c88389",
@@ -94,10 +95,12 @@ export default function VerticalProductCard({
       <div className="relative flex-shrink-0 bg-white w-full h-full flex flex-col">
         {/* Product Image */}
         <div className="relative w-full aspect-square overflow-hidden group p-5 bg-[#fdf0f2] rounded-b-2xl">
-          <img
+          <Image
             src={imageSrc}
             alt={imageAlt}
-            className="w-full h-full object-contain transition-transform duration-500 "
+            fill
+            sizes="(max-width: 768px) 100vw, 20vw"
+            className="p-4 object-contain transition-transform duration-500"
           />
           <button
             onClick={() => {
