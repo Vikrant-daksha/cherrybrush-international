@@ -1,27 +1,122 @@
 "use client";
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Polaroid from "@/components/Polaroid/Polaroid";
 import NailProductCard from "@/components/NailProductCard/NailProductCard";
+import VerticalProductCard from "@/components/verticalProductCard/verticalProductCard";
 import ChooseYourMood from "@/components/discover/ChooseYourMood";
 import HowToApply from "@/components/discover/HowToApply";
 import LovedByGirls from "@/components/discover/LovedByGirls";
 import FAQ from "@/components/discover/FAQ";
-import VerticalProductCard from "@/components/verticalProductCard/verticalProductCard";
 
-type Prouct = {
+interface ProductItem {
+  _id: string;
   name: string;
-  image: string;
-  price: string;
-};
+  description: string;
+  price: number;
+  collection: string;
+  images: string[];
+  sizes?: string[];
+  colors?: { hex: string; label?: string }[];
+  shapes?: string[];
+  style?: string;
+  badge?: string;
+  rating?: number;
+  reviewCount?: number;
+}
+
+// Fallback demo products if MongoDB is empty
+const FALLBACK_PRODUCTS: ProductItem[] = [
+  {
+    _id: "demo-1",
+    images: ["/product.png"],
+    name: "Rose Champagne",
+    collection: "Rose Collection",
+    style: "Glitter Ombre",
+    description:
+      "A soft blush ombre with shimmer details for an effortlessly elegant look.",
+    price: 799,
+    badge: "BEST SELLER",
+    rating: 4.5,
+    reviewCount: 1250,
+    colors: [
+      { hex: "#e8a0b0", label: "Rose Pink" },
+      { hex: "#f5e6d0", label: "Champagne" },
+      { hex: "#d4b896", label: "Warm Nude" },
+      { hex: "#c09090", label: "Mauve" },
+    ],
+  },
+  {
+    _id: "demo-2",
+    images: ["/complete-kit.png"],
+    name: "Cherry Blossom",
+    collection: "Spring Collection",
+    style: "Soft Matte",
+    description:
+      "Delicate petals in matte blush — minimal, dreamy, and made to last.",
+    price: 649,
+    badge: "NEW",
+    rating: 4,
+    reviewCount: 380,
+    colors: [
+      { hex: "#f5c5c5", label: "Blush" },
+      { hex: "#f0d5d5", label: "Petal" },
+    ],
+  },
+  {
+    _id: "demo-3",
+    images: ["/wardrobe.png"],
+    name: "Velvet Noir",
+    collection: "Evening Collection",
+    style: "Deep Shimmer",
+    description:
+      "A rich, dark shimmer for evenings that demand attention and sophistication.",
+    price: 899,
+    rating: 5,
+    reviewCount: 620,
+    colors: [
+      { hex: "#3d2b1f", label: "Noir" },
+      { hex: "#6b4f3a", label: "Walnut" },
+      { hex: "#a88a6a", label: "Taupe" },
+    ],
+  },
+];
 
 const Home = () => {
-  const [spikesCount, setSpikesCount] = useState(30);
-  const [spikeSize, setSpikeSize] = useState(1.5);
-  const [spikeyEnabled, setSpikeyEnabled] = useState(true);
+  const [products, setProducts] = useState<ProductItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch real-time products from MongoDB
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const res = await fetch("/api/products");
+        const data = await res.json();
+        if (
+          data.success &&
+          Array.isArray(data.products) &&
+          data.products.length > 0
+        ) {
+          setProducts(data.products);
+        } else {
+          // Use fallback demo items if database has no products yet
+          setProducts(FALLBACK_PRODUCTS);
+        }
+      } catch (error) {
+        console.error("Error loading products from MongoDB:", error);
+        setProducts(FALLBACK_PRODUCTS);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProducts();
+  }, []);
 
   return (
     <>
+      {/* ── Hero Section ── */}
       <div
         id="hero-section"
         className="relative w-full min-h-[85vh] md:h-[85vh] select-none overflow-hidden flex flex-col md:flex-row"
@@ -34,7 +129,8 @@ const Home = () => {
             Design without 3d
           </Link>
         </div>
-        {/* Text and Button Container - Width Halfed */}
+
+        {/* Text and Button Container */}
         <div className="w-full md:w-1/2 h-1/2 md:h-full flex flex-col justify-center px-8 md:px-16 lg:px-24 text-white z-10 relative py-12 md:py-0">
           <h1 className="font-serif text-5xl md:text-8xl font-light leading-[1.12]">
             <div className="-mb-4">Made to</div>
@@ -60,7 +156,7 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Polaroid Container - Width Halfed & Centered */}
+        {/* Polaroid Container */}
         <div className="w-full md:w-1/2 h-1/2 md:h-full flex items-center justify-center z-10 relative">
           <img
             src="sample_processed.png"
@@ -91,108 +187,8 @@ const Home = () => {
       <section>
         <ChooseYourMood />
       </section>
-      {/* Polaroid Showcase Section */}
-      {/* <section className="py-20 px-8 bg-[#fafaf7] flex flex-col items-center"> */}
-      {/* <h2 className="font-serif text-3xl md:text-5xl font-light text-[#3d2b1f] mb-2 tracking-wide text-center">
-          Curated Favorites
-        </h2>
-        <p className="font-sans text-xs text-[#8a7060] tracking-widest uppercase mb-12">
-          Handcrafted Press-Ons
-        </p> */}
 
-      {/* Dynamic Spikey Customizer Controls */}
-      {/* <div className="mb-16 p-6 md:p-8 bg-[#f5efe0]/45 border border-[#6b4f3a]/10 rounded-xl max-w-xl w-full flex flex-col gap-6 shadow-sm">
-          <div className="flex items-center justify-between border-b border-[#6b4f3a]/10 pb-4">
-            <h3 className="font-serif text-lg font-medium text-[#3d2b1f]">Paper Edge Customizer</h3>
-            <button
-              onClick={() => setSpikeyEnabled(!spikeyEnabled)}
-              className={`px-4 py-1.5 text-xs uppercase tracking-widest rounded-full transition-all duration-300 font-semibold border ${
-                spikeyEnabled
-                  ? "bg-[#6b4f3a] text-[#fafaf7] border-[#6b4f3a]"
-                  : "bg-transparent text-[#6b4f3a] border-[#6b4f3a]/30 hover:border-[#6b4f3a]"
-              }`}
-            >
-              {spikeyEnabled ? "Spikey Edge On" : "Smooth Edge"}
-            </button>
-          </div>
-
-          {spikeyEnabled && (
-            <div className="flex flex-col gap-5">
-              // {/* Spike Density Slider */}
-      {/* <div className="flex flex-col gap-2">
-                <div className="flex justify-between text-xs font-semibold tracking-wider text-[#8a7060] uppercase">
-                  <span>Edge Spike Density</span>
-                  <span className="text-[#3d2b1f]">{spikesCount} spikes</span>
-                </div>
-                <input
-                  type="range"
-                  min="10"
-                  max="100"
-                  step="2"
-                  value={spikesCount}
-                  onChange={(e) => setSpikesCount(parseInt(e.target.value))}
-                  className="w-full accent-[#a0604a] bg-[#e8d9c0] h-1.5 rounded-lg appearance-none cursor-pointer"
-                />
-              </div>
-
-              {/* Spike Depth / Size Slider */}
-      {/* <div className="flex flex-col gap-2">
-                <div className="flex justify-between text-xs font-semibold tracking-wider text-[#8a7060] uppercase">
-                  <span>Spike Depth / Size</span>
-                  <span className="text-[#3d2b1f]">{spikeSize.toFixed(1)}%</span>
-                </div>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="5.0"
-                  step="0.1"
-                  value={spikeSize}
-                  onChange={(e) => setSpikeSize(parseFloat(e.target.value))}
-                  className="w-full accent-[#a0604a] bg-[#e8d9c0] h-1.5 rounded-lg appearance-none cursor-pointer"
-                />
-              </div>
-            </div> */}
-      {/* )} */}
-      {/* </div> */}
-
-      {/* <div className="flex flex-wrap gap-8 justify-center max-w-6xl w-full px-4">
-          <Polaroid
-            imageSrc="/complete_kit.png"
-            imageAlt="Handcrafted Nail Application Kit"
-            caption="Signature Toolkits"
-            rotate="left-soft"
-            className="w-[280px]"
-            spikey={spikeyEnabled}
-            spikesCountX={spikesCount}
-            spikesCountY={Math.round(spikesCount * 1.33)}
-            spikeSize={spikeSize}
-          />
-          <Polaroid
-            imageSrc="/product.png"
-            imageAlt="Signature Cherry Brush Nail Set"
-            caption="Cherry Satin"
-            rotate="right-soft"
-            className="w-[280px]"
-            spikey={spikeyEnabled}
-            spikesCountX={spikesCount}
-            spikesCountY={Math.round(spikesCount * 1.33)}
-            spikeSize={spikeSize}
-          />
-          <Polaroid
-            imageSrc="/wardrobe.png"
-            imageAlt="Nails displayed inside luxury wardrobe"
-            caption="The Wardrobe"
-            rotate="left-hard"
-            className="w-[280px]"
-            spikey={spikeyEnabled}
-            spikesCountX={spikesCount}
-            spikesCountY={Math.round(spikesCount * 1.33)}
-            spikeSize={spikeSize}
-          />
-        </div> */}
-      {/* </section> */}
-
-      {/* ── Horizontal Product Scroll ── */}
+      {/* ── Horizontal Product Showcase (MongoDB Dynamic) ── */}
       <section className="py-16 bg-[#fafaf7] overflow-hidden">
         <div className="px-8 md:px-16 mb-8 flex items-end justify-between">
           <div>
@@ -208,163 +204,95 @@ const Home = () => {
           </button>
         </div>
 
-        {/* Scroll Container */}
+        {/* Dynamic Scroll Container */}
         <div
           className="flex gap-6 overflow-x-auto pb-4 px-8 md:px-16"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          <div className="flex-shrink-0 w-[min(680px,90vw)]">
-            <NailProductCard
-              imageSrc="/product.png"
-              name="Rose Champagne"
-              collection="Rose Collection"
-              style="Glitter Ombre"
-              description="A soft blush ombre with shimmer details for an effortlessly elegant look."
-              price="₹799"
-              badge="BEST SELLER"
-              rating={4.5}
-              reviewCount={1250}
-              colors={[
-                { hex: "#e8a0b0", label: "Rose Pink" },
-                { hex: "#f5e6d0", label: "Champagne" },
-                { hex: "#d4b896", label: "Warm Nude" },
-                { hex: "#c09090", label: "Mauve" },
-              ]}
-              extraColorsCount={2}
-            />
-          </div>
-          <div className="flex-shrink-0 w-[min(680px,90vw)]">
-            <NailProductCard
-              imageSrc="/complete_kit.png"
-              name="Cherry Blossom"
-              collection="Spring Collection"
-              style="Soft Matte"
-              description="Delicate petals in matte blush — minimal, dreamy, and made to last."
-              price="₹649"
-              badge="NEW"
-              rating={4}
-              reviewCount={380}
-              accentColor="#a0604a"
-              colors={[
-                { hex: "#f5c5c5", label: "Blush" },
-                { hex: "#f0d5d5", label: "Petal" },
-              ]}
-              extraColorsCount={1}
-            />
-          </div>
-          <div className="flex-shrink-0 w-[min(680px,90vw)]">
-            <NailProductCard
-              imageSrc="/wardrobe.png"
-              name="Velvet Noir"
-              collection="Evening Collection"
-              style="Deep Shimmer"
-              description="A rich, dark shimmer for evenings that demand attention and sophistication."
-              price="₹899"
-              rating={5}
-              reviewCount={620}
-              accentColor="#6b4f3a"
-              colors={[
-                { hex: "#3d2b1f", label: "Noir" },
-                { hex: "#6b4f3a", label: "Walnut" },
-                { hex: "#a88a6a", label: "Taupe" },
-              ]}
-            />
-          </div>
+          {loading
+            ? // Skeleton Loader
+              [1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="flex-shrink-0 w-[min(740px,90vw)] h-[440px] rounded-2xl bg-white/60 animate-pulse border border-[#f0e0e5]/60"
+                />
+              ))
+            : products.map((p) => (
+                <div key={p._id} className="flex-shrink-0 w-[min(740px,90vw)]">
+                  <NailProductCard
+                    imageSrc={p.images?.[0] || "/product.png"}
+                    name={p.name}
+                    collection={p.collection}
+                    style={p?.style}
+                    description={p.description}
+                    price={`₹${p.price}`}
+                    badge={p?.badge}
+                    rating={p?.rating ?? 4.5}
+                    reviewCount={p?.reviewCount ?? 0}
+                    colors={p.colors || []}
+                    extraColorsCount={
+                      (p.colors?.length || 0) > 4
+                        ? (p.colors?.length || 0) - 4
+                        : 0
+                    }
+                  />
+                </div>
+              ))}
         </div>
       </section>
 
-      <section>
+      {/* ── Vertical Grid / Featured Sets Section (MongoDB Dynamic) ── */}
+      <section className="py-12 bg-white">
         <div className="px-8 md:px-16 mb-8 flex items-end justify-between">
           <div>
             <p className="font-sans text-[10px] tracking-[0.2em] uppercase text-[#c88389] font-semibold mb-1">
-              Handcrafted with love
+              Popular Picks
             </p>
             <h2 className="font-serif text-3xl md:text-4xl font-light text-[#3d2b1f] tracking-wide">
-              Featured Sets
+              Trending Designs
             </h2>
           </div>
           <button className="font-sans text-xs tracking-widest uppercase text-[#a88a6a] hover:text-[#3d2b1f] transition-colors border-b border-[#a88a6a]/40 hover:border-[#3d2b1f]/40 pb-0.5">
-            View All
+            Explore All
           </button>
         </div>
+
         <div
           className="flex gap-6 overflow-x-auto pb-4 px-8 md:px-16"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          <VerticalProductCard
-            imageSrc="/product.png"
-            imageAlt="Signature Cherry Brush Nail Set"
-            name="Signature Cherry Brush Nail Set"
-            collection="Signature Collection"
-            style="Soft Matte"
-            description="Delicate petals in matte blush — minimal, dreamy, and made to last."
-            price="₹649"
-            badge="NEW"
-            rating={4}
-            reviewCount={380}
-            accentColor="#a0604a"
-            colors={[
-              { hex: "#f5c5c5", label: "Blush" },
-              { hex: "#f0d5d5", label: "Petal" },
-            ]}
-            extraColorsCount={1}
-          />
-          <VerticalProductCard
-            imageSrc="/product.png"
-            imageAlt="Signature Cherry Brush Nail Set"
-            name="Signature Cherry Brush Nail Set"
-            collection="Signature Collection"
-            style="Soft Matte"
-            description="Delicate petals in matte blush — minimal, dreamy, and made to last."
-            price="₹649"
-            badge="NEW"
-            rating={4}
-            reviewCount={380}
-            accentColor="#a0604a"
-            colors={[
-              { hex: "#f5c5c5", label: "Blush" },
-              { hex: "#f0d5d5", label: "Petal" },
-            ]}
-            extraColorsCount={1}
-          />
-          <VerticalProductCard
-            imageSrc="/product.png"
-            imageAlt="Signature Cherry Brush Nail Set"
-            name="Signature Cherry Brush Nail Set"
-            collection="Signature Collection"
-            style="Soft Matte"
-            description="Delicate petals in matte blush — minimal, dreamy, and made to last."
-            price="₹649"
-            badge="NEW"
-            rating={4}
-            reviewCount={380}
-            accentColor="#a0604a"
-            colors={[
-              { hex: "#f5c5c5", label: "Blush" },
-              { hex: "#f0d5d5", label: "Petal" },
-            ]}
-            extraColorsCount={1}
-          />
-          <VerticalProductCard
-            imageSrc="/product.png"
-            imageAlt="Signature Cherry Brush Nail Set"
-            name="Signature Cherry Brush Nail Set"
-            collection="Signature Collection"
-            style="Soft Matte"
-            description="Delicate petals in matte blush — minimal, dreamy, and made to last."
-            price="₹649"
-            badge="NEW"
-            rating={4}
-            reviewCount={380}
-            accentColor="#a0604a"
-            colors={[
-              { hex: "#f5c5c5", label: "Blush" },
-              { hex: "#f0d5d5", label: "Petal" },
-            ]}
-            extraColorsCount={1}
-          />
+          {loading
+            ? [1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="w-72 h-96 rounded-2xl bg-neutral-100 animate-pulse flex-shrink-0"
+                />
+              ))
+            : products.map((p) => (
+                <VerticalProductCard
+                  key={p._id}
+                  imageSrc={p.images?.[0] || "/product.png"}
+                  imageAlt={p.name}
+                  name={p.name}
+                  collection={p.collection}
+                  style={p?.style}
+                  description={p.description}
+                  price={`₹${p.price}`}
+                  badge={p?.badge}
+                  rating={p?.rating ?? 5}
+                  reviewCount={p?.reviewCount ?? 0}
+                  colors={p.colors || []}
+                  extraColorsCount={
+                    (p.colors?.length || 0) > 2
+                      ? (p.colors?.length || 0) - 2
+                      : 0
+                  }
+                />
+              ))}
         </div>
       </section>
+
+      {/* ── Additional Sections ── */}
       <section>
         <HowToApply />
       </section>

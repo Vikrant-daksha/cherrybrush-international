@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { FaCartShopping } from "react-icons/fa6";
 
 export interface ColorSwatch {
   hex: string;
@@ -88,19 +89,19 @@ export default function VerticalProductCard({
 
   return (
     <div
-      className="flex flex-col md:flex-row rounded-2xl overflow-hidden border border-[#f0e0e5]/60 shadow-[0_8px_40px_rgba(160,100,120,0.10)] hover:shadow-[0_16px_56px_rgba(160,100,120,0.18)] transition-all duration-300 w-1/5"
+      className="flex flex-col md:flex-row rounded-2xl overflow-hidden border border-[#f0c5d2] shadow-[0_8px_40px_rgba(160,100,120,0.10)] hover:shadow-[0_16px_56px_rgba(160,100,120,0.18)] transition-all duration-300 w-1/5"
       style={{ backdropFilter: "blur(8px)" }}
     >
       {/* ── Left: Image Panel ── */}
-      <div className="relative flex-shrink-0 bg-white w-full h-full flex flex-col">
+      <div className="relative flex-shrink-0 bg-white w-full h-full flex flex-col p-2">
         {/* Product Image */}
-        <div className="relative w-full aspect-square overflow-hidden group p-5 bg-[#fdf0f2] rounded-b-2xl">
+        <div className="relative w-full aspect-square overflow-hidden bg-[#fdf0f2] border-b border-b-[#f0c5d2] rounded-2xl">
           <Image
             src={imageSrc}
             alt={imageAlt}
             fill
             sizes="(max-width: 768px) 100vw, 20vw"
-            className="p-4 object-contain transition-transform duration-500"
+            className=" object-cover transition-transform duration-500"
           />
           <button
             onClick={() => {
@@ -130,14 +131,10 @@ export default function VerticalProductCard({
             <p className="font-sans text-[10px] font-semibold tracking-[0.18em] uppercase text-[#c88389] mb-1.5">
               {collection}
             </p>
-            <h2 className="font-serif text-xl md:text-3xl font-normal tracking-wider text-[#3d2b1f] uppercase leading-tight">
+            <h2 className="font-serif text-xl md:text-2xl font-normal tracking-wider text-[#3d2b1f] uppercase leading-tight">
               {name}
             </h2>
-            {/* {style && (
-              <p className="font-sans text-sm text-[#c88389] font-medium mt-1 tracking-wide">
-                {style}
-              </p>
-            )} */}
+
             {colors.length > 0 && (
               <div className="flex items-center gap-2 py-3">
                 {colors.map((color, i) => (
@@ -160,17 +157,17 @@ export default function VerticalProductCard({
           </div>
 
           {/* Price + Rating */}
-          <div className="flex items-center justify-between mt-5">
+          <div className="flex items-center justify-between mt-3">
             <span className="font-serif text-3xl font-normal text-[#3d2b1f] tracking-wide">
               {price}
             </span>
             <div className="flex items-center gap-2">
-              <StarRating rating={rating} />
-              {reviewCount !== undefined && (
+              {/* <StarRating rating={rating} /> */}
+              {/* {reviewCount !== undefined && (
                 <span className="font-sans text-xs text-[#a88a6a]">
                   ({reviewCount.toLocaleString()})
                 </span>
-              )}
+              )} */}
             </div>
           </div>
 
@@ -178,26 +175,10 @@ export default function VerticalProductCard({
           <div className="flex items-center gap-3 mt-4">
             <button
               onClick={onAddToBag}
-              className="flex-1 py-3.5 rounded-xl font-sans text-[11px] font-bold tracking-[0.2em] uppercase text-white transition-all duration-300 hover:brightness-90 active:scale-95 shadow-md"
-              style={{ backgroundColor: accentColor }}
+              className="flex-1 py-3.5 rounded-xl flex items-center justify-center rounded-xl border border-[#e8c0c8]/70 hover:border-[#c88389]/60 bg-white/70 backdrop-blur-sm transition-all hover:scale-105 shadow-sm"
             >
-              Add to Bag
-            </button>
-            <button className="w-[52px] h-[52px] flex-shrink-0 flex items-center justify-center rounded-xl border border-[#e8c0c8]/70 hover:border-[#c88389]/60 bg-white/70 backdrop-blur-sm transition-all hover:scale-105 shadow-sm">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#c88389"
-                strokeWidth="1.8"
-              >
-                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <path d="M16 10a4 4 0 01-8 0" />
-                <line x1="12" y1="12" x2="12" y2="18" />
-                <line x1="9" y1="15" x2="15" y2="15" />
-              </svg>
+              <FaCartShopping className="w-5 h-5 mr-3  text-[#c88389]" />
+              <span className="text-[#c88389]">Add to Cart</span>
             </button>
           </div>
         </div>

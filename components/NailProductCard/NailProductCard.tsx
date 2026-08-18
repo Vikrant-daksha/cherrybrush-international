@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { CiBookmark } from "react-icons/ci";
+import { FaCartShopping } from "react-icons/fa6";
 
 export interface ColorSwatch {
   hex: string;
@@ -22,6 +24,8 @@ export interface NailProductCardProps {
   colors?: ColorSwatch[];
   extraColorsCount?: number; // e.g. 2 for "+2"
   accentColor?: string; // hex for buttons/accents, defaults to rose pink
+  size?: "sm" | "md" | "lg"; // Pre-configured sizing presets
+  className?: string; // Custom size/layout overrides (e.g. "w-[700px] h-[400px]")
   onAddToBag?: () => void;
   onWishlist?: () => void;
   onQuickView?: () => void;
@@ -65,6 +69,36 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
+const SIZE_CONFIGS = {
+  sm: {
+    card: "max-w-2xl md:h-[390px]",
+    title: "text-2xl md:text-3xl",
+    padding: "p-4 md:p-5",
+    desc: "line-clamp-2 text-xs md:text-sm mt-2",
+    featuresGap: "mt-3 pt-2.5 gap-3",
+    pillIcon: "w-6 h-6",
+    iconSize: "11",
+  },
+  md: {
+    card: "max-w-3xl md:h-[450px]",
+    title: "text-2xl md:text-3xl pr-12",
+    padding: "p-5 md:p-6",
+    desc: "line-clamp-2 md:line-clamp-3 text-sm mt-1",
+    featuresGap: "mt-4 pt-3.5 gap-4",
+    pillIcon: "w-7 h-7",
+    iconSize: "13",
+  },
+  lg: {
+    card: "max-w-4xl md:h-[500px]",
+    title: "text-3xl md:text-[2.6rem]",
+    padding: "p-6 md:p-7",
+    desc: "line-clamp-3 text-sm md:text-base mt-4",
+    featuresGap: "mt-5 pt-4 gap-5",
+    pillIcon: "w-8 h-8",
+    iconSize: "14",
+  },
+};
+
 export default function NailProductCard({
   imageSrc,
   imageAlt = "Nail product",
@@ -79,96 +113,69 @@ export default function NailProductCard({
   colors = [],
   extraColorsCount = 0,
   accentColor = "#c88389",
+  size = "md",
+  className = "",
   onAddToBag,
   onWishlist,
   onQuickView,
 }: NailProductCardProps) {
   const [wishlisted, setWishlisted] = useState(false);
   const [showQuickView, setShowQuickView] = useState(false);
+  const config = SIZE_CONFIGS[size];
 
   return (
     <div
-      className="flex flex-col md:flex-row bg-white/90 rounded-2xl overflow-hidden border border-[#f0e0e5]/60 shadow-[0_8px_40px_rgba(160,100,120,0.10)] hover:shadow-[0_16px_56px_rgba(160,100,120,0.18)] transition-all duration-300 max-w-3xl w-full"
+      className={`flex flex-col md:flex-row bg-white/90 rounded-2xl overflow-hidden border border-[#f0e0e5]/60 shadow-[0_8px_40px_rgba(160,100,120,0.10)] hover:shadow-[0_16px_56px_rgba(160,100,120,0.18)] transition-all duration-300 w-full ${config.card} ${className}`}
       style={{ backdropFilter: "blur(8px)" }}
     >
       {/* ── Left: Image Panel ── */}
-      <div className="relative flex-shrink-0 w-full md:w-[52%] bg-[#fdf0f2] flex flex-col">
-        {/* Badge */}
-        {badge && (
-          <div className="absolute top-4 left-4 z-10 flex items-center gap-1.5 bg-white/80 backdrop-blur-sm border border-[#e8c0c8]/60 rounded-full px-3 py-1.5 shadow-sm">
-            <span className="font-sans text-[10px] font-bold tracking-widest uppercase text-[#a0604a]">
-              {badge}
-            </span>
-            <svg
-              width="11"
-              height="11"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#c88389"
-              strokeWidth="2.5"
-            >
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-          </div>
-        )}
-
-        {/* Product Image */}
-        <div
-          className="relative w-full aspect-square overflow-hidden group"
-          onMouseEnter={() => setShowQuickView(true)}
-          onMouseLeave={() => setShowQuickView(false)}
+      <div className="relative flex-shrink-0 w-full md:w-[48%] h-64 md:h-full bg-[#fdf0f2] flex flex-col justify-between">
+        {/* Wishlist Button on image on mobile or as badge */}
+        <button
+          onClick={() => {
+            setWishlisted(!wishlisted);
+            onWishlist?.();
+          }}
+          className="absolute top-5 left-5 z-20 w-8 h-8 rounded-full border border-[#e8c0c8]/60 bg-white/80 backdrop-blur-sm flex items-center justify-center transition-all hover:scale-110 hover:border-[#c88389]/60 shadow-sm"
+          aria-label="Save to wishlist"
         >
-          <Image
-            src={imageSrc}
-            alt={imageAlt}
-            fill
-            sizes="(max-width: 768px) 100vw, 33vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-
-          {/* Quick View overlay */}
-          <div
-            className={`absolute inset-0 bg-[#3d2b1f]/10 flex items-end justify-center pb-5 transition-opacity duration-300 ${
-              showQuickView ? "opacity-100" : "opacity-0"
-            }`}
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill={wishlisted ? "#c88389" : "none"}
+            stroke="#c88389"
+            strokeWidth="2"
           >
-            <button
-              onClick={onQuickView}
-              className="flex flex-col items-center gap-1 bg-white/80 backdrop-blur-sm border border-[#e8c0c8]/60 rounded-full px-4 py-2 shadow-md"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#c88389"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="12" r="3" />
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-              </svg>
-              <span className="font-sans text-[9px] font-bold tracking-widest uppercase text-[#a0604a] leading-none">
-                Quick
-                <br />
-                View
-              </span>
-            </button>
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+        </button>
+
+        {/* Product Image Wrapper */}
+        <div className="w-full flex-1 p-3 min-h-0">
+          <div className="relative w-full h-full border border-[#eeb9c9] overflow-hidden rounded-xl group bg-white/40">
+            <Image
+              src={imageSrc}
+              alt={imageAlt}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+            />
           </div>
         </div>
 
         {/* Color Swatches */}
         {colors.length > 0 && (
-          <div className="flex items-center gap-2 px-4 py-3">
+          <div className="flex items-center justify-center gap-2 px-3 pb-3 flex-shrink-0">
             {colors.map((color, i) => (
               <button
                 key={i}
                 title={color.label}
-                className="w-7 h-7 rounded-full border-2 border-white shadow-md transition-transform hover:scale-110 focus:scale-110"
+                className="w-6 h-6 md:w-7 md:h-7 rounded-full border border-[#eeb9c9] shadow-sm transition-transform hover:scale-110 focus:scale-110 focus:border-[#f08caa] focus:border-2"
                 style={{ backgroundColor: color.hex }}
               />
             ))}
             {extraColorsCount > 0 && (
-              <div className="w-7 h-7 rounded-full bg-[#f0e0e5] border-2 border-white shadow-sm flex items-center justify-center">
+              <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-[#f0e0e5] border border-white shadow-sm flex items-center justify-center">
                 <span className="font-sans text-[10px] font-semibold text-[#a0604a]">
                   +{extraColorsCount}
                 </span>
@@ -179,120 +186,57 @@ export default function NailProductCard({
       </div>
 
       {/* ── Right: Details Panel ── */}
-      <div className="flex-1 flex flex-col justify-between px-6 py-6 relative">
+      <div
+        className={`flex-1 flex flex-col justify-between ${config.padding} relative overflow-hidden`}
+      >
         {/* Wishlist button */}
-        <button
-          onClick={() => {
-            setWishlisted(!wishlisted);
-            onWishlist?.();
-          }}
-          className="absolute top-5 right-5 w-9 h-9 rounded-full border border-[#e8c0c8]/60 bg-white/70 backdrop-blur-sm flex items-center justify-center transition-all hover:scale-110 hover:border-[#c88389]/60 shadow-sm"
-        >
-          <svg
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill={wishlisted ? "#c88389" : "none"}
-            stroke="#c88389"
-            strokeWidth="2"
-          >
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-          </svg>
-        </button>
 
-        {/* Collection + Name */}
-        <div>
-          <p className="font-sans text-[10px] font-semibold tracking-[0.18em] uppercase text-[#c88389] mb-1.5">
-            {collection}
-          </p>
-          <h2 className="font-serif text-3xl md:text-4xl font-normal tracking-wider text-[#3d2b1f] uppercase leading-tight">
+        {/* Header: Collection + Name + Style */}
+        <div className="">
+          <div className="flex justify-between items-center w-full mb-1">
+            <p className="font-sans text-[11px] font-semibold tracking-[0.14em] uppercase text-[#c88389]">
+              {collection}
+            </p>
+            <button
+              onClick={() => {
+                setWishlisted(!wishlisted);
+                onWishlist?.();
+              }}
+              className="flex items-center justify-between w-fit px-3.5 h-8 rounded-full border text-[0.65rem] uppercase font-semibold text-[#3d2b1f] border-[#e8c0c8]/60 bg-white/70 backdrop-blur-sm gap-1.5 transition-all hover:scale-105 hover:border-[#c88389]/60 shadow-sm"
+            >
+              <span>Wishlist</span>
+              <CiBookmark className="w-3.5 h-3.5 mb-[1px]" />
+            </button>
+          </div>
+          <h2
+            className={`font-serif ${config.title} font-normal tracking-wider text-[#3d2b1f] uppercase leading-tight`}
+          >
             {name}
           </h2>
-          {style && (
-            <p className="font-sans text-sm text-[#c88389] font-medium mt-1 tracking-wide">
-              {style}
-            </p>
-          )}
         </div>
 
-        {/* Description */}
-        <p className="font-sans text-sm text-[#6b4f3a]/80 leading-relaxed mt-4">
+        {/* Description (line-clamped to prevent overflowing fixed heights) */}
+        <p
+          className={`font-sans text-[#6b4f3a]/80 leading-relaxed ${config.desc}`}
+        >
           {description}
         </p>
 
         {/* Feature Pills */}
-        <div className="flex flex-wrap items-center gap-4 mt-5 pt-4 border-t border-[#f0e0e5]/70">
-          {[
-            { icon: "clock", label: "10 MIN", sub: "APPLICATION" },
-            { icon: "refresh", label: "REUSABLE", sub: "UP TO 2 WEEKS" },
-            { icon: "leaf", label: "NON-TOXIC", sub: "SAFE ON NAILS" },
-          ].map(({ icon, label, sub }) => (
-            <div key={label} className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full border border-[#e8c0c8]/70 flex items-center justify-center flex-shrink-0">
-                {icon === "clock" && (
-                  <svg
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#c88389"
-                    strokeWidth="2"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 6v6l4 2" />
-                  </svg>
-                )}
-                {icon === "refresh" && (
-                  <svg
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#c88389"
-                    strokeWidth="2"
-                  >
-                    <polyline points="23 4 23 10 17 10" />
-                    <polyline points="1 20 1 14 7 14" />
-                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-                  </svg>
-                )}
-                {icon === "leaf" && (
-                  <svg
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#c88389"
-                    strokeWidth="2"
-                  >
-                    <path d="M17 8C8 10 5.9 16.17 3.82 19.41a.5.5 0 0 0 .76.64C6.14 18.45 8 17 8 17c0 2 1 4 3 5 5-3 6-7 5-11" />
-                  </svg>
-                )}
-              </div>
-              <div>
-                <p className="font-sans text-[9px] font-bold tracking-widest text-[#3d2b1f] uppercase leading-none">
-                  {label}
-                </p>
-                <p className="font-sans text-[9px] tracking-wider text-[#a88a6a] uppercase leading-none mt-0.5">
-                  {sub}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+        <div className={`${config.featuresGap} pb-16`}></div>
 
         {/* Price + Rating */}
-        <div className="flex items-center justify-between mt-5">
-          <span className="font-serif text-3xl font-normal text-[#3d2b1f] tracking-wide">
+        <div className="flex items-center justify-between mt-3 pt-2">
+          <span className="font-serif text-2xl md:text-3xl font-normal text-[#3d2b1f] tracking-wide">
             {price}
           </span>
           <div className="flex items-center gap-2">
-            <StarRating rating={rating} />
+            {/* <StarRating rating={rating} />
             {reviewCount !== undefined && (
               <span className="font-sans text-xs text-[#a88a6a]">
                 ({reviewCount.toLocaleString()})
               </span>
-            )}
+            )} */}
           </div>
         </div>
 
@@ -300,26 +244,10 @@ export default function NailProductCard({
         <div className="flex items-center gap-3 mt-4">
           <button
             onClick={onAddToBag}
-            className="flex-1 py-3.5 rounded-xl font-sans text-[11px] font-bold tracking-[0.2em] uppercase text-white transition-all duration-300 hover:brightness-90 active:scale-95 shadow-md"
-            style={{ backgroundColor: accentColor }}
+            className="flex-1 py-3.5 rounded-xl flex items-center justify-center rounded-xl border border-[#e8c0c8]/70 hover:border-[#c88389]/60 bg-white/70 backdrop-blur-sm transition-all hover:scale-105 shadow-sm"
           >
-            Add to Bag
-          </button>
-          <button className="w-[52px] h-[52px] flex-shrink-0 flex items-center justify-center rounded-xl border border-[#e8c0c8]/70 hover:border-[#c88389]/60 bg-white/70 backdrop-blur-sm transition-all hover:scale-105 shadow-sm">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#c88389"
-              strokeWidth="1.8"
-            >
-              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <path d="M16 10a4 4 0 01-8 0" />
-              <line x1="12" y1="12" x2="12" y2="18" />
-              <line x1="9" y1="15" x2="15" y2="15" />
-            </svg>
+            <FaCartShopping className="w-5 h-5 mr-3 text-[#c88389]" />
+            <span className="text-[#c88389]">Add to Cart</span>
           </button>
         </div>
       </div>

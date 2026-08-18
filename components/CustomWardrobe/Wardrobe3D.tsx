@@ -154,7 +154,7 @@ export default function Wardrobe3D({
     const columnHeights = columnsConfig.map(
       (col) =>
         col.rowHeights.reduce((sum, h) => sum + h, 0) +
-        (col.rowHeights.length + 1) * T
+        (col.rowHeights.length + 1) * T,
     );
     const TOTAL_H = Math.max(...columnHeights);
 
@@ -176,7 +176,7 @@ export default function Wardrobe3D({
       36,
       container.clientWidth / container.clientHeight,
       0.1,
-      100
+      100,
     );
     camera.position.set(0, -0.7, 16.2);
     camera.lookAt(0, -0.7, 0);
@@ -204,7 +204,7 @@ export default function Wardrobe3D({
     manager.onProgress = (_url, itemsLoaded, itemsTotal) => {
       const percentage = Math.min(
         Math.round((itemsLoaded / itemsTotal) * 100),
-        99
+        99,
       );
       setProgress(percentage);
     };
@@ -241,7 +241,7 @@ export default function Wardrobe3D({
         wrapT: THREE.RepeatWrapping,
         repeatX: 2.5,
         repeatY: 1.0,
-      }
+      },
     );
     const normalTexHoriz = textureManager.loadTexture(
       `/${woodTextureFolder}/${woodTextureFolder}_NormalGL.webp`,
@@ -251,7 +251,7 @@ export default function Wardrobe3D({
         wrapT: THREE.RepeatWrapping,
         repeatX: 2.5,
         repeatY: 1.0,
-      }
+      },
     );
     const roughTexHoriz = textureManager.loadTexture(
       `/${woodTextureFolder}/${woodTextureFolder}_Roughness.webp`,
@@ -261,7 +261,7 @@ export default function Wardrobe3D({
         wrapT: THREE.RepeatWrapping,
         repeatX: 2.5,
         repeatY: 1.0,
-      }
+      },
     );
 
     const colorTexVert = textureManager.loadTexture(
@@ -273,7 +273,7 @@ export default function Wardrobe3D({
         wrapT: THREE.RepeatWrapping,
         repeatX: 1.0,
         repeatY: 2.5,
-      }
+      },
     );
     const normalTexVert = textureManager.loadTexture(
       `/${woodTextureFolder}/${woodTextureFolder}_NormalGL.webp`,
@@ -283,7 +283,7 @@ export default function Wardrobe3D({
         wrapT: THREE.RepeatWrapping,
         repeatX: 1.0,
         repeatY: 2.5,
-      }
+      },
     );
     const roughTexVert = textureManager.loadTexture(
       `/${woodTextureFolder}/${woodTextureFolder}_Roughness.webp`,
@@ -293,7 +293,7 @@ export default function Wardrobe3D({
         wrapT: THREE.RepeatWrapping,
         repeatX: 1.0,
         repeatY: 2.5,
-      }
+      },
     );
 
     // ── Shared Materials ─────────────────────────────────────────────────────
@@ -306,7 +306,7 @@ export default function Wardrobe3D({
       roughness: 0.3,
       metalness: 0.1,
       emissiveMap: colorTexHoriz,
-      emissive: 0xffffff,
+      emissive: 0xefe8d6,
       emissiveIntensity: 0.1,
     });
 
@@ -366,14 +366,18 @@ export default function Wardrobe3D({
       woodMaterial: THREE.Material,
       goldMaterial: THREE.Material,
       hasHandle: boolean = true,
-      zOffset: number = 0
+      zOffset: number = 0,
     ) => {
       const group = new THREE.Group();
 
       if (hasHandle) {
         const drawerFaceW = width - 0.04;
         const drawerFaceH = height - 0.04;
-        const drawerFaceGeo = new THREE.BoxGeometry(drawerFaceW, drawerFaceH, 0.06);
+        const drawerFaceGeo = new THREE.BoxGeometry(
+          drawerFaceW,
+          drawerFaceH,
+          0.06,
+        );
         const drawerFaceMesh = new THREE.Mesh(drawerFaceGeo, woodMaterial);
         drawerFaceMesh.position.set(0, 0, depth / 2 - 0.02 + zOffset);
         drawerFaceMesh.castShadow = true;
@@ -401,7 +405,11 @@ export default function Wardrobe3D({
       } else {
         const drawerFaceW = width;
         const drawerFaceH = height;
-        const drawerFaceGeo = new THREE.BoxGeometry(drawerFaceW, drawerFaceH, 0.06);
+        const drawerFaceGeo = new THREE.BoxGeometry(
+          drawerFaceW,
+          drawerFaceH,
+          0.06,
+        );
         const drawerFaceMesh = new THREE.Mesh(drawerFaceGeo, woodMaterial);
         drawerFaceMesh.position.set(0, 0, depth / 2 + 0.01 + zOffset);
         drawerFaceMesh.castShadow = true;
@@ -436,7 +444,7 @@ export default function Wardrobe3D({
       x: number,
       y: number,
       z: number,
-      isVertical: boolean
+      isVertical: boolean,
     ) => {
       const mat = isVertical ? woodMatVert : woodMatHoriz;
       const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -451,14 +459,30 @@ export default function Wardrobe3D({
     // 1. Outer Frame (Boundary Walls)
     addFramePart(TOTAL_W, T, D, 0, TOTAL_H / 2 - T / 2, 0.04, false);
     addFramePart(TOTAL_W, T, D, 0, -TOTAL_H / 2 + T / 2, 0.04, false);
-    addFramePart(T, TOTAL_H - T + PANEL_H, D, -TOTAL_W / 2 + T / 2, -(T + PANEL_H) / 2, 0.04, true);
-    addFramePart(T, TOTAL_H - T + PANEL_H, D, TOTAL_W / 2 - T / 2, -(T + PANEL_H) / 2, 0.04, true);
+    addFramePart(
+      T,
+      TOTAL_H - T + PANEL_H,
+      D,
+      -TOTAL_W / 2 + T / 2,
+      -(T + PANEL_H) / 2,
+      0.04,
+      true,
+    );
+    addFramePart(
+      T,
+      TOTAL_H - T + PANEL_H,
+      D,
+      TOTAL_W / 2 - T / 2,
+      -(T + PANEL_H) / 2,
+      0.04,
+      true,
+    );
 
     // ── Brand Values Bottom Panel ───────────────────────────────────────────
     const panelTex = textureManager.getBottomPanelTexture();
     const bottomPanel = new THREE.Mesh(
       new THREE.BoxGeometry(TOTAL_W - 2 * T, PANEL_H, D),
-      woodMatHoriz
+      woodMatHoriz,
     );
     bottomPanel.position.set(0, -TOTAL_H / 2 - PANEL_H / 2, 0);
     bottomPanel.receiveShadow = true;
@@ -483,7 +507,15 @@ export default function Wardrobe3D({
     let currentXForDividers = -TOTAL_W / 2 + T;
     for (let c = 0; c < cols - 1; c++) {
       currentXForDividers += columnsConfig[c].width;
-      addFramePart(T, TOTAL_H - 2 * T, D, currentXForDividers + T / 2, 0, 0.03, true);
+      addFramePart(
+        T,
+        TOTAL_H - 2 * T,
+        D,
+        currentXForDividers + T / 2,
+        0,
+        0.03,
+        true,
+      );
       currentXForDividers += T;
     }
 
@@ -503,7 +535,7 @@ export default function Wardrobe3D({
     // 4. Back Board Panel
     const backMesh = new THREE.Mesh(
       new THREE.BoxGeometry(TOTAL_W - 2 * T, TOTAL_H - 2 * T, 0.08),
-      woodMatVert
+      woodMatVert,
     );
     backMesh.position.set(0, 0, -D / 2 + 0.04);
     backMesh.receiveShadow = true;
@@ -522,8 +554,15 @@ export default function Wardrobe3D({
       depthWrite: false,
       side: THREE.DoubleSide,
     });
-    const totalCompartments = columnsConfig.reduce((sum, col) => sum + col.rowHeights.length, 0);
-    const instancedGlows = new THREE.InstancedMesh(glowGeo, glowMat, totalCompartments);
+    const totalCompartments = columnsConfig.reduce(
+      (sum, col) => sum + col.rowHeights.length,
+      0,
+    );
+    const instancedGlows = new THREE.InstancedMesh(
+      glowGeo,
+      glowMat,
+      totalCompartments,
+    );
     const dummy = new THREE.Object3D();
 
     // Cache Map for Product Label Materials to prevent redundant allocations
@@ -535,7 +574,8 @@ export default function Wardrobe3D({
       const compW = columnsConfig[c].width;
       const rowHeightsForCol = columnsConfig[c].rowHeights;
       const colHeight =
-        rowHeightsForCol.reduce((sum, h) => sum + h, 0) + (rowHeightsForCol.length + 1) * T;
+        rowHeightsForCol.reduce((sum, h) => sum + h, 0) +
+        (rowHeightsForCol.length + 1) * T;
       const heightDiff = TOTAL_H - colHeight;
 
       let currentY = -TOTAL_H / 2 + T;
@@ -550,7 +590,15 @@ export default function Wardrobe3D({
         compGroup.position.set(colX, rowY, 0);
 
         if (isNormalDrawer) {
-          const drawerGroup = buildDrawerGroup(compW, compH, D, woodMatHoriz, goldMat, true, 0);
+          const drawerGroup = buildDrawerGroup(
+            compW,
+            compH,
+            D,
+            woodMatHoriz,
+            goldMat,
+            true,
+            0,
+          );
           compGroup.add(drawerGroup);
 
           dummy.position.set(0, -999, 0);
@@ -569,7 +617,7 @@ export default function Wardrobe3D({
             woodMatHoriz,
             goldMat,
             false,
-            drawerZOffset
+            drawerZOffset,
           );
           compGroup.add(drawerGroup);
 
@@ -578,7 +626,10 @@ export default function Wardrobe3D({
           const LED_Y = (compH / 2) * 0.95;
           const LED_Z = D * 0.13;
 
-          const ledBar = new THREE.Mesh(new THREE.BoxGeometry(LED_W, 0.04, 0.1), ledMat);
+          const ledBar = new THREE.Mesh(
+            new THREE.BoxGeometry(LED_W, 0.04, 0.1),
+            ledMat,
+          );
           ledBar.position.set(0, LED_Y, LED_Z);
           compGroup.add(ledBar);
 
@@ -586,11 +637,17 @@ export default function Wardrobe3D({
           const CAP_H = 0.1;
           const CAP_D = 0.14;
 
-          const leftCap = new THREE.Mesh(new THREE.BoxGeometry(CAP_W, CAP_H, CAP_D), goldCapMat);
+          const leftCap = new THREE.Mesh(
+            new THREE.BoxGeometry(CAP_W, CAP_H, CAP_D),
+            goldCapMat,
+          );
           leftCap.position.set(-(LED_W / 2) - CAP_W / 2, LED_Y, LED_Z);
           compGroup.add(leftCap);
 
-          const rightCap = new THREE.Mesh(new THREE.BoxGeometry(CAP_W, CAP_H, CAP_D), goldCapMat);
+          const rightCap = new THREE.Mesh(
+            new THREE.BoxGeometry(CAP_W, CAP_H, CAP_D),
+            goldCapMat,
+          );
           rightCap.position.set(LED_W / 2 + CAP_W / 2, LED_Y, LED_Z);
           compGroup.add(rightCap);
 
@@ -609,7 +666,10 @@ export default function Wardrobe3D({
               metalness: 0.05,
               depthWrite: false,
             });
-            const labelPlane = new THREE.Mesh(new THREE.PlaneGeometry(compW, compH), labelMat);
+            const labelPlane = new THREE.Mesh(
+              new THREE.PlaneGeometry(compW, compH),
+              labelMat,
+            );
             labelPlane.position.set(0, 0, drawerZFront + 0.15);
             labelPlane.userData = {
               type: "quiz",
@@ -628,7 +688,10 @@ export default function Wardrobe3D({
               metalness: 0.05,
               depthWrite: false,
             });
-            const labelPlane = new THREE.Mesh(new THREE.PlaneGeometry(compW, compH), labelMat);
+            const labelPlane = new THREE.Mesh(
+              new THREE.PlaneGeometry(compW, compH),
+              labelMat,
+            );
             labelPlane.position.set(0, 0, drawerZFront + 0.15);
             labelPlane.userData = {
               type: "kit",
@@ -677,8 +740,11 @@ export default function Wardrobe3D({
             kitBoxMesh.rotation.x = tiltAngle;
             kitBoxMesh.position.set(
               0,
-              shelfY + 0.12 + (kitBoxH / 2) * Math.cos(Math.abs(tiltAngle)) - 0.05,
-              drawerZFront + shelfDepth - 0.03
+              shelfY +
+                0.12 +
+                (kitBoxH / 2) * Math.cos(Math.abs(tiltAngle)) -
+                0.05,
+              drawerZFront + shelfDepth - 0.03,
             );
             kitBoxMesh.castShadow = true;
             kitBoxMesh.receiveShadow = true;
@@ -697,7 +763,7 @@ export default function Wardrobe3D({
               woodMatHoriz,
               goldMat,
               false,
-              drawerZOffset
+              drawerZOffset,
             );
             subDrawerGroup.position.set(-0.1, -1.6, 0.67);
             compGroup.add(subDrawerGroup);
@@ -708,7 +774,10 @@ export default function Wardrobe3D({
           const LED_Y = (compH / 2) * 0.95;
           const LED_Z = D * 0.13;
 
-          const ledBar = new THREE.Mesh(new THREE.BoxGeometry(LED_W, 0.04, 0.1), ledMat);
+          const ledBar = new THREE.Mesh(
+            new THREE.BoxGeometry(LED_W, 0.04, 0.1),
+            ledMat,
+          );
           ledBar.position.set(0, LED_Y, LED_Z);
           compGroup.add(ledBar);
 
@@ -716,11 +785,17 @@ export default function Wardrobe3D({
           const CAP_H = 0.1;
           const CAP_D = 0.14;
 
-          const leftCap = new THREE.Mesh(new THREE.BoxGeometry(CAP_W, CAP_H, CAP_D), goldCapMat);
+          const leftCap = new THREE.Mesh(
+            new THREE.BoxGeometry(CAP_W, CAP_H, CAP_D),
+            goldCapMat,
+          );
           leftCap.position.set(-(LED_W / 2) - CAP_W / 2, LED_Y, LED_Z);
           compGroup.add(leftCap);
 
-          const rightCap = new THREE.Mesh(new THREE.BoxGeometry(CAP_W, CAP_H, CAP_D), goldCapMat);
+          const rightCap = new THREE.Mesh(
+            new THREE.BoxGeometry(CAP_W, CAP_H, CAP_D),
+            goldCapMat,
+          );
           rightCap.position.set(LED_W / 2 + CAP_W / 2, LED_Y, LED_Z);
           compGroup.add(rightCap);
 
@@ -736,7 +811,10 @@ export default function Wardrobe3D({
           // Reusable product label material from cache
           let uniqueRecessMat = productLabelMaterials.get(productKey);
           if (!uniqueRecessMat) {
-            const recessTex = textureManager.getProductLabelTexture(product.name, product.price);
+            const recessTex = textureManager.getProductLabelTexture(
+              product.name,
+              product.price,
+            );
             uniqueRecessMat = new THREE.MeshStandardMaterial({
               map: recessTex,
               color: 0xfff7f2,
@@ -805,7 +883,12 @@ export default function Wardrobe3D({
           interactiveObjects.push(shelfGroup);
 
           // Warm local RectAreaLights (Optimized count & intensity)
-          const rectLight = new THREE.RectAreaLight(0xffdaa6, 3.2, compW - 0.2, compH * 0.45);
+          const rectLight = new THREE.RectAreaLight(
+            0xffdaa6,
+            3.2,
+            compW - 0.2,
+            compH * 0.45,
+          );
           rectLight.position.set(0, compH / 2 - 0.15, D * 0.13);
           rectLight.lookAt(0, -compH * 0.8, -D / 2);
           compGroup.add(rectLight);
@@ -813,7 +896,8 @@ export default function Wardrobe3D({
           // If last column, render custom status plate
           if (c === cols - 1) {
             const plateTitle = r - 1 ? "BEST SELLER" : "TRENDING NOW";
-            const customPlateTex = textureManager.getPlateLabelTexture(plateTitle);
+            const customPlateTex =
+              textureManager.getPlateLabelTexture(plateTitle);
 
             const customPlateMat = new THREE.MeshStandardMaterial({
               map: customPlateTex,
@@ -831,7 +915,7 @@ export default function Wardrobe3D({
 
             const plateBackMesh = new THREE.Mesh(
               new THREE.BoxGeometry(plateW, plateH, 0.008),
-              customPlateMat
+              customPlateMat,
             );
             customPlateGroup.add(plateBackMesh);
 
@@ -843,28 +927,28 @@ export default function Wardrobe3D({
 
             const borderTop = new THREE.Mesh(
               new THREE.BoxGeometry(plateW, borderT, 0.012),
-              goldBorderMat
+              goldBorderMat,
             );
             borderTop.position.set(0, plateH / 2 - borderT / 2, 0.004);
             customPlateGroup.add(borderTop);
 
             const borderBottom = new THREE.Mesh(
               new THREE.BoxGeometry(plateW, borderT, 0.012),
-              goldBorderMat
+              goldBorderMat,
             );
             borderBottom.position.set(0, -plateH / 2 + borderT / 2, 0.004);
             customPlateGroup.add(borderBottom);
 
             const borderLeft = new THREE.Mesh(
               new THREE.BoxGeometry(borderT, plateH, 0.012),
-              goldBorderMat
+              goldBorderMat,
             );
             borderLeft.position.set(-plateW / 2 + borderT / 2, 0, 0.004);
             customPlateGroup.add(borderLeft);
 
             const borderRight = new THREE.Mesh(
               new THREE.BoxGeometry(borderT, plateH, 0.012),
-              goldBorderMat
+              goldBorderMat,
             );
             borderRight.position.set(plateW / 2 - borderT / 2, 0, 0.004);
             customPlateGroup.add(borderRight);
@@ -890,8 +974,8 @@ export default function Wardrobe3D({
     scene.add(new THREE.AmbientLight(0x0e0806, 1.8));
 
     // Primary Shadow Casting Directional Light
-    const globalLight = new THREE.DirectionalLight(0xffead9, 2.8);
-    globalLight.position.set(6, 3, 8);
+    const globalLight = new THREE.DirectionalLight(0xefe8d6, 2.4);
+    globalLight.position.set(0, 1.4, 3);
     globalLight.castShadow = true;
     globalLight.shadow.mapSize.set(2048, 2048);
     globalLight.shadow.camera.near = 0.5;
@@ -904,11 +988,11 @@ export default function Wardrobe3D({
     globalLight.shadow.bias = -0.0003;
     scene.add(globalLight);
 
-    // Secondary Fill Light (castShadow disabled to save 50% shadow render time)
-    const globalLightLeft = new THREE.DirectionalLight(0xffead9, 2.0);
-    globalLightLeft.position.set(-6, 3, 8);
-    globalLightLeft.castShadow = false;
-    scene.add(globalLightLeft);
+    // // Secondary Fill Light (castShadow disabled to save 50% shadow render time)
+    // const globalLightLeft = new THREE.DirectionalLight(0xffead9, 2.0);
+    // globalLightLeft.position.set(-5, 0, 3);
+    // globalLightLeft.castShadow = false;
+    // scene.add(globalLightLeft);
 
     // ── Raycasting & Mouse Interaction ───────────────────────────────────────
     const raycaster = new THREE.Raycaster();
@@ -977,7 +1061,7 @@ export default function Wardrobe3D({
       ([entry]) => {
         isVisible = entry.isIntersecting;
       },
-      { threshold: 0.05 }
+      { threshold: 0.05 },
     );
     observer.observe(container);
 
@@ -1019,7 +1103,8 @@ export default function Wardrobe3D({
       // Subtle breathing float animation for hovered item
       if (activeHoveredMesh) {
         const floatDelta = Math.sin(elapsedTime * 4) * 0.003;
-        activeHoveredMesh.position.y += (floatDelta - activeHoveredMesh.position.y * 0.05) * 0.1;
+        activeHoveredMesh.position.y +=
+          (floatDelta - activeHoveredMesh.position.y * 0.05) * 0.1;
       }
 
       renderer.render(scene, camera);
@@ -1092,7 +1177,9 @@ export default function Wardrobe3D({
         <div className={styles.productToast}>
           <div className={styles.toastText}>
             <span className={styles.toastSub}>
-              {selectedProduct.type === "quiz" ? "Custom Experience" : "Added to Selection"}
+              {selectedProduct.type === "quiz"
+                ? "Custom Experience"
+                : "Added to Selection"}
             </span>
             <span className={styles.toastTitle}>
               {selectedProduct.name} • {selectedProduct.price}
