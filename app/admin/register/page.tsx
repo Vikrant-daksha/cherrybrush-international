@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CiLock, CiMail, CiUser } from "react-icons/ci";
@@ -57,8 +58,14 @@ export default function AdminRegisterPage() {
       <div className="w-full max-w-md bg-white/90 backdrop-blur-md rounded-3xl p-8 md:p-10 border border-[#f0e0e5] shadow-[0_16px_56px_rgba(160,100,120,0.12)]">
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#fdf0f2] border border-[#e8c0c8] mb-3 shadow-sm">
-            <span className="text-2xl">🍒</span>
+          <div className="relative inline-block w-16 h-16 rounded-2xl overflow-hidden mb-3 shadow-sm border border-[#e8c0c8]">
+            <Image
+              src="/logo.jpeg"
+              alt="Cherrybrush Logo"
+              fill
+              className="object-cover"
+              priority
+            />
           </div>
           <p className="text-xs uppercase tracking-[0.2em] font-semibold text-[#c88389] mb-1">
             Cherrybrush Portal

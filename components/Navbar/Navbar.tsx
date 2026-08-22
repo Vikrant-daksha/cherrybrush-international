@@ -23,7 +23,7 @@ interface ProductSuggestion {
 }
 
 export default function Navbar({
-  brandName = "NAILÉ",
+  brandName = "CHERRYBRUSH",
   className = "",
 }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -150,10 +150,19 @@ export default function Navbar({
         {/* ── Brand Logo ── */}
         <Link
           href="/"
-          className="group flex items-center gap-1.5 focus:outline-none"
+          className="group flex items-center gap-2.5 focus:outline-none"
         >
+          <div className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden shadow-sm border border-white/20 transition-transform duration-300 group-hover:scale-105 flex-shrink-0">
+            <Image
+              src="/logo.jpeg"
+              alt="Cherrybrush Logo"
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
           <span
-            className="text-2xl sm:text-3xl font-normal tracking-[0.22em] text-white uppercase transition-transform duration-300 group-hover:scale-105"
+            className="text-xl sm:text-2xl font-normal tracking-[0.2em] text-white uppercase transition-transform duration-300 group-hover:scale-105"
             style={{
               fontFamily:
                 'var(--font-cormorant, "Cormorant Garamond", Georgia, serif)',

@@ -5,9 +5,9 @@ import Link from "next/link";
 import { FiShield, FiRefreshCw, FiLock, FiMail } from "react-icons/fi";
 
 export const metadata = {
-  title: "Privacy & No Return Policy | NAILÉ",
+  title: "Privacy & No Return Policy | CherryBrush",
   description:
-    "Read NAILÉ privacy practices and our strict no-return policy for hygienic handcrafted press-on nails.",
+    "Read CherryBrush privacy practices and our strict no-return policy for hygienic handcrafted press-on nails.",
 };
 
 export default function PrivacyPolicyPage() {

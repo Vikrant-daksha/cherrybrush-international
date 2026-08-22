@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import styles from './Footer.module.css';
 
 export default function Footer() {
@@ -5,7 +6,14 @@ export default function Footer() {
     <footer className={styles.footer}>
       <div className={styles.inner}>
         <div className={styles.brand}>
-          <span className={styles.logoIcon}>🍒</span>
+          <div className="relative w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 inline-block align-middle mr-2 border border-[#6b4f3a]/10">
+            <Image
+              src="/logo.jpeg"
+              alt="CherryBrush Logo"
+              fill
+              className="object-cover"
+            />
+          </div>
           <span className={styles.logoBrand}>
             Cherry<span className={styles.logoAccent}>Brush</span>
           </span>

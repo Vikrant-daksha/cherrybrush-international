@@ -5,9 +5,9 @@ import Link from "next/link";
 import { FiCheckCircle, FiPackage, FiInfo, FiArrowRight } from "react-icons/fi";
 
 export const metadata = {
-  title: "What's Included in Your Set | NAILÉ",
+  title: "What's Included in Your Set | CherryBrush",
   description:
-    "Explore what comes inside your NAILÉ Press-On package: Basic Set, Normal Set (12 Nails), or Nail-Only Set.",
+    "Explore what comes inside your CherryBrush Press-On package: Basic Set, Normal Set (12 Nails), or Nail-Only Set.",
 };
 
 export default function WhatsIncludedPage() {
