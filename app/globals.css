@@ -4,6 +4,10 @@
    CHERRYBRUSH — GLOBAL DESIGN TOKENS
    Scandinavian Birch Palette
 ══════════════════════════════════════════════ */
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   /* ── Colour Palette ── */
   --color-birch-cream: #f5efe0;
@@ -140,4 +144,26 @@ body::before {
   background-size: cover;
   background-position: center;
   height: 100vh;
+}
+
+/* ══════════════════════════════════════════════
+   CONTINUOUS MARQUEE CAROUSEL (CSS ONLY)
+══════════════════════════════════════════════ */
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 200s linear infinite;
+}
+
+.animate-marquee-track:hover {
+  animation-play-state: paused;
 }

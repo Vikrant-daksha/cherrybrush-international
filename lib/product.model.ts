@@ -7,6 +7,7 @@ export interface IColorSwatch {
 
 export interface IProduct {
   name: string;
+  slug: string;
   description: string;
   price: number;
   collection: string;
@@ -14,11 +15,15 @@ export interface IProduct {
   sizes?: string[];
   colors?: IColorSwatch[];
   shapes?: string[];
+  lengths?: string[];
   style?: string;
   badge?: string;
   rating?: number;
   reviewCount?: number;
   inStock?: boolean;
+  isHero?: boolean;
+  isFeatured?: boolean;
+  packageType?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -28,7 +33,7 @@ const ColorSwatchSchema = new Schema<IColorSwatch>(
     hex: { type: String, required: true },
     label: { type: String },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const ProductSchema = new Schema<IProduct>(
@@ -37,6 +42,12 @@ const ProductSchema = new Schema<IProduct>(
       type: String,
       required: [true, "Product name is required"],
       trim: true,
+    },
+    slug: {
+      type: String,
+      lowercase: true,
+      trim: true,
+      index: true,
     },
     description: {
       type: String,
@@ -70,6 +81,9 @@ const ProductSchema = new Schema<IProduct>(
     shapes: {
       type: [String],
     },
+    lengths: {
+      type: [String],
+    },
     style: {
       type: String,
       trim: true,
@@ -93,11 +107,34 @@ const ProductSchema = new Schema<IProduct>(
       type: Boolean,
       default: true,
     },
+    isHero: {
+      type: Boolean,
+      default: false,
+    },
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
+    packageType: {
+      type: String,
+      default: false,
+    },
   },
   {
     timestamps: true,
-  }
+    suppressReservedKeysWarning: true,
+  },
 );
+
+// Ensure hot-reload updates the model schema if new fields were added
+if (
+  mongoose.models.Product &&
+  (!mongoose.models.Product.schema.paths.isHero ||
+    !mongoose.models.Product.schema.paths.isFeatured ||
+    !mongoose.models.Product.schema.paths.packageType)
+) {
+  delete (mongoose.models as any).Product;
+}
 
 // Prevent mongoose from recompiling model in Next.js hot reload
 const Product: Model<IProduct> =

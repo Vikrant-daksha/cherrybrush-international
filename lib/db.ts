@@ -24,20 +24,38 @@ if (!global.mongooseCache) {
   global.mongooseCache = cached;
 }
 
+// ── Eager Connection: Trigger DB connection immediately when module is loaded on server ──
+if (MONGO_URI && !cached.promise) {
+  cached.promise = mongoose
+    .connect(MONGO_URI, { bufferCommands: false })
+    .then((mongooseInstance) => {
+      console.log("✅ MongoDB Eagerly Connected Successfully");
+      cached.conn = mongooseInstance;
+      return mongooseInstance;
+    })
+    .catch((err) => {
+      cached.promise = null;
+      console.error("❌ Eager MongoDB connection error:", err);
+      throw err;
+    });
+}
+
 export const connectDB = async () => {
   if (cached.conn) {
     return cached.conn;
   }
 
   if (!cached.promise) {
-    const opts = {
-      bufferCommands: false,
-    };
-
-    cached.promise = mongoose.connect(MONGO_URI!, opts).then((mongooseInstance) => {
-      console.log("✅ MongoDB Connected Successfully");
-      return mongooseInstance;
-    });
+    if (!MONGO_URI) {
+      throw new Error("MONGO_URI environment variable is missing");
+    }
+    cached.promise = mongoose
+      .connect(MONGO_URI, { bufferCommands: false })
+      .then((mongooseInstance) => {
+        console.log("✅ MongoDB Connected Successfully");
+        cached.conn = mongooseInstance;
+        return mongooseInstance;
+      });
   }
 
   try {

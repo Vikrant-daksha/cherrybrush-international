@@ -34,8 +34,12 @@ export default function HomePage() {
   return (
     <main className={styles.main}>
       <div className="flex gap-4 justify-around py-4 bg-neutral-900 text-white text-xs uppercase tracking-widest">
-        <Link href="/" className="hover:text-[#c88389]">Design with no 3d</Link>
-        <Link href="/home" className="hover:text-[#c88389]">Redesign without 3d</Link>
+        <Link href="/" className="hover:text-[#c88389]">
+          Design with no 3d
+        </Link>
+        <Link href="/" className="hover:text-[#c88389]">
+          Redesign without 3d
+        </Link>
       </div>
       <div id="hero-section" className="relative w-full h-[90vh] overflow-clip">
         <div className="absolute left-[10vh] top-1/3 z-10">

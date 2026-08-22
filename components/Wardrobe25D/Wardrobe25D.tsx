@@ -137,7 +137,7 @@ export default function Wardrobe25D() {
                 <span className={styles.featurePrice}>₹599</span>
                 
                 <Image
-                  src="/complete_kit.png"
+                  src="/complete-kit.png"
                   alt="The Complete Kit"
                   width={180}
                   height={140}

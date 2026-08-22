@@ -56,6 +56,8 @@ export default function Polaroid({
               src={imageSrc}
               alt={imageAlt}
               fill
+              loading="eager"
+              priority
               sizes="(max-width: 768px) 100vw, 25vw"
               className="object-contain transition-transform duration-500 hover:scale-105"
             />

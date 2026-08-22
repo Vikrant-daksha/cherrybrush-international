@@ -11,23 +11,28 @@ interface FAQItem {
 const faqData: FAQItem[] = [
   {
     question: "How long do CherryBrush Press-Ons last?",
-    answer: "When applied with our premium nail glue, they can last up to 2-3 weeks. For temporary wear (3-5 days), use our high-durability adhesive tabs, which are perfect for weekend events or changing looks quickly.",
+    answer:
+      "When applied with our premium nail glue, they can last up to 2-3 weeks. For temporary wear (3-5 days), use our high-durability adhesive tabs, which are perfect for weekend events or changing looks quickly.",
   },
   {
     question: "Are the nails reusable?",
-    answer: "Yes! CherryBrush press-on nails are designed for multiple uses. If removed gently (using warm water, soap, and oil), any dried glue residue can be gently buffed off the back of the nail, making them ready for your next application.",
+    answer:
+      "Yes! CherryBrush press-on nails are designed for multiple uses. If removed gently (using warm water, soap, and oil), any dried glue residue can be gently buffed off the back of the nail, making them ready for your next application.",
   },
   {
     question: "How do I find my perfect nail size?",
-    answer: "Every CherryBrush set includes 24 premium nails in 12 different sizes to ensure a perfect fit for any nail shape. No measuring is required, though you can use our sizing card for reference.",
+    answer:
+      "Every CherryBrush set includes 24 premium nails in 12 different sizes to ensure a perfect fit for any nail shape. No measuring is required, though you can use our sizing card for reference.",
   },
   {
     question: "Will press-ons damage my natural nails?",
-    answer: "Not at all! Unlike traditional salon acrylics or gels that require harsh drilling and acetone soaking, CherryBrush press-ons apply with non-toxic glue and lift away gently without stripping your natural nail layers.",
+    answer:
+      "Not at all! Unlike traditional salon acrylics or gels that require harsh drilling and acetone soaking, CherryBrush press-ons apply with non-toxic glue and lift away gently without stripping your natural nail layers.",
   },
   {
     question: "What is included in each CherryBrush kit?",
-    answer: "Each box comes with a complete application kit containing 24 premium nails, dual-sided adhesive tabs, professional nail glue, a wooden prep stick, a mini nail buffer/file, and prep pads.",
+    answer:
+      "Each box comes with a complete application kit containing 24 premium nails, dual-sided adhesive tabs, professional nail glue, a wooden prep stick, a mini nail buffer/file, and prep pads.",
   },
 ];
 
@@ -39,16 +44,16 @@ export default function FAQ() {
   };
 
   return (
-    <section className="w-full bg-[#fafaf7] py-20 px-4 md:px-8 select-none">
-      <div className="max-w-6xl mx-auto flex flex-col gap-24">
-        
+    <section className="w-full bg-[#fafaf7] select-none">
+      <div className="w-full flex flex-col gap-24">
         {/* ── PART 1: WHY PRESS-ONS COMPARISON BLOCK ── */}
-        <div className="flex flex-col lg:flex-row items-center bg-[#fafaf7] rounded-3xl overflow-hidden border border-[#6b4f3a]/15 shadow-[0_4px_24px_rgba(107,79,58,0.03)]">
+        <div className="flex flex-col lg:flex-row items-center bg-[#fafaf7] py-20 overflow-hidden border-t border-t-[#6b4f3a]/15 shadow-[0_4px_24px_rgba(107,79,58,0.03)]">
           {/* Left image with elegant curve matching the visual design */}
           <div className="w-full lg:w-2/5 h-[350px] lg:h-[480px] relative overflow-hidden shrink-0">
             <Image
               src="/sample_processed.png"
               alt="Elegant Hand with CherryBrush Nails"
+              unoptimized
               fill
               sizes="(max-width: 1024px) 100vw, 40vw"
               className="object-cover object-left-top"
@@ -62,75 +67,32 @@ export default function FAQ() {
             <h2 className="font-serif text-3xl md:text-4xl text-[#3d2b1f] tracking-widest uppercase mb-12 text-center lg:text-left">
               Why Press-Ons?
             </h2>
-
-            <div className="relative flex flex-col md:flex-row justify-between items-stretch gap-8 md:gap-4">
-              
-              {/* Left Column: CherryBrush Press Ons */}
-              <div className="flex-1 flex flex-col gap-6 text-center md:text-left">
-                <h3 className="font-sans text-xs tracking-[0.2em] font-semibold text-[#c88389] uppercase">
-                  CherryBrush Press Ons
-                </h3>
-                <ul className="flex flex-col gap-4 font-sans text-sm text-[#3d2b1f]">
-                  <li className="flex items-center justify-center md:justify-start gap-2 text-neutral-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#c88389]" />
-                    Salon quality
-                  </li>
-                  <li className="flex items-center justify-center md:justify-start gap-2 text-neutral-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#c88389]" />
-                    Reusable
-                  </li>
-                  <li className="flex items-center justify-center md:justify-start gap-2 text-neutral-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#c88389]" />
-                    Gentle on nails
-                  </li>
-                  <li className="flex items-center justify-center md:justify-start gap-2 text-neutral-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#c88389]" />
-                    Affordable
-                  </li>
-                  <li className="flex items-center justify-center md:justify-start gap-2 text-neutral-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#c88389]" />
-                    Apply in minutes
-                  </li>
-                </ul>
+            <div className="grid grid-cols-3 justify-center items-center text-xs sm:text-sm font-monstrat tracking-[0.10rem]">
+              <div className="">
+                <div className="text-xl mb-6">Our Press Ons</div>
+                <div className="mb-3">Salon quality</div>
+                <div className="mb-3">Reusable</div>
+                <div className="mb-3">Gentle on nails</div>
+                <div className="mb-3">Affordable</div>
+                <div className="mb-3">Apply in minutes</div>
               </div>
+              <div className="self-stretch relative flex items-center justify-center">
+                {/* Full-height vertical line touching top and bottom */}
+                <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[1px] bg-[#f0c5d2]" />
 
-              {/* Vertical Divider with VS Circle */}
-              <div className="relative flex flex-row md:flex-col justify-center items-center py-4 md:py-0 shrink-0">
-                <div className="absolute h-[1px] w-full md:w-[1px] md:h-full bg-[#6b4f3a]/15" />
-                <div className="relative z-10 w-9 h-9 rounded-full bg-[#f5efe0] border border-[#6b4f3a]/10 flex items-center justify-center font-serif text-[11px] italic tracking-widest text-[#8a7060] font-medium shadow-sm">
-                  VS.
+                {/* Soft pastel VS badge */}
+                <div className="relative z-10 w-11 h-11 md:w-12 md:h-12 rounded-full bg-[#fae4e8] border border-[#f0c5d2]/60 flex items-center justify-center font-serif italic text-xs md:text-sm tracking-wider text-[#a85a6a] shadow-sm">
+                  vs.
                 </div>
               </div>
-
-              {/* Right Column: Salon Nails */}
-              <div className="flex-1 flex flex-col gap-6 text-center md:text-left md:pl-8">
-                <h3 className="font-sans text-xs tracking-[0.2em] font-semibold text-[#8a7060] uppercase">
-                  Salon Nails
-                </h3>
-                <ul className="flex flex-col gap-4 font-sans text-sm text-[#8a7060]">
-                  <li className="flex items-center justify-center md:justify-start gap-2 text-neutral-500">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#8a7060]/40" />
-                    Expensive
-                  </li>
-                  <li className="flex items-center justify-center md:justify-start gap-2 text-neutral-500">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#8a7060]/40" />
-                    Time consuming
-                  </li>
-                  <li className="flex items-center justify-center md:justify-start gap-2 text-neutral-500">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#8a7060]/40" />
-                    Can damage nails
-                  </li>
-                  <li className="flex items-center justify-center md:justify-start gap-2 text-neutral-500">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#8a7060]/40" />
-                    High maintenance
-                  </li>
-                  <li className="flex items-center justify-center md:justify-start gap-2 text-neutral-500">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#8a7060]/40" />
-                    Hours at the salon
-                  </li>
-                </ul>
+              <div>
+                <div className="text-xl mb-6">Other</div>
+                <div className="mb-3">Expensive</div>
+                <div className="mb-3">Time consuming</div>
+                <div className="mb-3">Can damage nails</div>
+                <div className="mb-3">High maintenance</div>
+                <div className="mb-3">Hours at the salon</div>
               </div>
-
             </div>
           </div>
         </div>
@@ -182,7 +144,9 @@ export default function FAQ() {
 
                   <div
                     className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                      isOpen ? "max-h-56 opacity-100 pb-6" : "max-h-0 opacity-0 pointer-events-none"
+                      isOpen
+                        ? "max-h-56 opacity-100 pb-6"
+                        : "max-h-0 opacity-0 pointer-events-none"
                     }`}
                   >
                     <p className="font-sans text-xs md:text-sm text-[#8a7060] leading-relaxed pr-8">
@@ -194,7 +158,6 @@ export default function FAQ() {
             })}
           </div>
         </div>
-
       </div>
     </section>
   );

@@ -1,21 +1,6 @@
 import type { Metadata } from 'next';
-import { Outfit, DM_Sans } from 'next/font/google';
 import '@/app/globals.css';
-
-const outfit = Outfit({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-outfit',
-  display: 'swap',
-});
-
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  style: ['normal', 'italic'],
-  variable: '--font-dm-sans',
-  display: 'swap',
-});
+import Navbar from '@/components/Navbar/Navbar';
 
 export const metadata: Metadata = {
   title: 'CherryBrush — Artisan Press-On Nails',
@@ -29,14 +14,23 @@ export const metadata: Metadata = {
   },
 };
 
+import { CartProvider } from '@/context/CartContext';
+import CartDrawer from '@/components/CartDrawer/CartDrawer';
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${outfit.variable} ${dmSans.variable}`}>
-      <body>{children}</body>
+    <html lang="en">
+      <body className="relative">
+        <CartProvider>
+          <Navbar />
+          {children}
+          <CartDrawer />
+        </CartProvider>
+      </body>
     </html>
   );
 }
