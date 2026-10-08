@@ -74,10 +74,6 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-const DEFAULT_SHAPES = ["Almond", "Coffin", "Square", "Oval", "Stiletto"];
-const DEFAULT_LENGTHS = ["Short", "Medium", "Long"];
-const DEFAULT_SIZES = ["XS", "S", "M", "L", "Custom"];
-
 export default function VerticalProductCard({
   href,
   imageSrc,
@@ -92,9 +88,9 @@ export default function VerticalProductCard({
   reviewCount = 0,
   colors = [],
   extraColorsCount = 0,
-  shapes = DEFAULT_SHAPES,
-  lengths = DEFAULT_LENGTHS,
-  sizes = DEFAULT_SIZES,
+  shapes = [],
+  lengths = [],
+  sizes = [],
   packageType = "",
   accentColor = "#c88389",
   onAddToBag,
@@ -110,21 +106,29 @@ export default function VerticalProductCard({
     setMounted(true);
   }, []);
 
-  const [selectedColor, setSelectedColor] = useState(
-    colors[0]?.label || colors[0]?.hex || "",
+  // Filter incoming variants to avoid ghost or empty strings
+  const validColors = (colors || []).filter(
+    (c) => c && (c.hex?.trim?.() || c.label?.trim?.() || (c as any).color?.trim?.()),
+  );
+  const availableShapes = (shapes || []).filter(
+    (s) => typeof s === "string" && s.trim().length > 0,
+  );
+  const availableLengths = (lengths || []).filter(
+    (l) => typeof l === "string" && l.trim().length > 0,
+  );
+  const availableSizes = (sizes || []).filter(
+    (sz) => typeof sz === "string" && sz.trim().length > 0,
   );
 
-  // Popup overlay option selection states
-  const availableShapes = shapes && shapes.length > 0 ? shapes : DEFAULT_SHAPES;
-  const availableLengths =
-    lengths && lengths.length > 0 ? lengths : DEFAULT_LENGTHS;
-  const availableSizes = sizes && sizes.length > 0 ? sizes : DEFAULT_SIZES;
+  const [selectedColor, setSelectedColor] = useState(
+    validColors[0]?.label || validColors[0]?.hex || "",
+  );
 
   const [popupShape, setPopupShape] = useState<string>("");
   const [popupLength, setPopupLength] = useState<string>("");
   const [popupSize, setPopupSize] = useState<string>("");
   const [popupShade, setPopupShade] = useState<string>(
-    selectedColor || colors[0]?.label || colors[0]?.hex || "",
+    selectedColor || validColors[0]?.label || validColors[0]?.hex || "",
   );
 
   const getDynamicHref = (baseHref?: string) => {
@@ -139,7 +143,9 @@ export default function VerticalProductCard({
   const handleOpenAddToCartModal = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setPopupShade(selectedColor || colors[0]?.label || colors[0]?.hex || "");
+    setPopupShade(
+      selectedColor || validColors[0]?.label || validColors[0]?.hex || "",
+    );
     setIsModalOpen(true);
   };
 
@@ -150,10 +156,8 @@ export default function VerticalProductCard({
       price: parseFloat(String(price).replace(/[^0-9.]/g, "")) || 0,
       image: imageSrc,
       collection: collection,
-      color:
-        popupShade || selectedColor || colors?.[0]?.label || colors?.[0]?.hex,
-      shade:
-        popupShade || selectedColor || colors?.[0]?.label || colors?.[0]?.hex,
+      color: popupShade || selectedColor || undefined,
+      shade: popupShade || selectedColor || undefined,
       shape: popupShape || undefined,
       length: popupLength || undefined,
       size: popupSize || undefined,
@@ -244,43 +248,45 @@ export default function VerticalProductCard({
 
             <div className="text-[12px] my-3 line-clamp-2">{description}</div>
 
-            <div className="uppercase text-[10px] tracking-widest font-semibold text-[#d4747c]">
-              Shades{" "}
-            </div>
-            <div className="min-h-9 flex items-center">
-              {colors.length > 0 && (
-                <div className="flex items-center gap-3 py-2">
-                  {colors.slice(0, 3).map((color, i) => {
-                    const colorKey = color.label || color.hex;
-                    const isSelected = selectedColor === colorKey;
-                    return (
-                      <button
-                        key={i}
-                        title={color.label || color.hex}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setSelectedColor(colorKey);
-                        }}
-                        className={`w-6 h-6 rounded-full border shadow-sm transition-all hover:scale-110 ${
-                          isSelected
-                            ? "ring-2 ring-[#c88389] border-[#c25d65] scale-105"
-                            : "border-[#eeb9c9] hover:border-[#c88389]"
-                        }`}
-                        style={{ backgroundColor: color.hex }}
-                      />
-                    );
-                  })}
-                  {extraColorsCount > 0 && (
-                    <div className="w-6 h-6 rounded-full bg-[#f0e0e5] border-2 border-white shadow-sm flex items-center justify-center">
-                      <span className="font-sans text-[10px] font-semibold text-[#a0604a]">
-                        +{extraColorsCount}
-                      </span>
-                    </div>
-                  )}
+            {validColors.length > 0 && (
+              <>
+                <div className="uppercase text-[10px] tracking-widest font-semibold text-[#d4747c]">
+                  Shades{" "}
                 </div>
-              )}
-            </div>
+                <div className="min-h-9 flex items-center">
+                  <div className="flex items-center gap-3 py-2">
+                    {validColors.slice(0, 3).map((color, i) => {
+                      const colorKey = color.label || color.hex;
+                      const isSelected = selectedColor === colorKey;
+                      return (
+                        <button
+                          key={i}
+                          title={color.label || color.hex}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setSelectedColor(colorKey);
+                          }}
+                          className={`w-6 h-6 rounded-full border shadow-sm transition-all hover:scale-110 ${
+                            isSelected
+                              ? "ring-2 ring-[#c88389] border-[#c25d65] scale-105"
+                              : "border-[#eeb9c9] hover:border-[#c88389]"
+                          }`}
+                          style={{ backgroundColor: color.hex }}
+                        />
+                      );
+                    })}
+                    {validColors.length > 3 && (
+                      <div className="w-6 h-6 rounded-full bg-[#f0e0e5] border-2 border-white shadow-sm flex items-center justify-center">
+                        <span className="font-sans text-[10px] font-semibold text-[#a0604a]">
+                          +{validColors.length - 3}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Price */}
@@ -357,100 +363,106 @@ export default function VerticalProductCard({
               {/* Option Selection Form */}
               <div className="space-y-5">
                 {/* ── 1. Shape Selection ── */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#a0604a] mb-2">
-                    Select Shape{" "}
-                    {!popupShape && (
-                      <span className="text-[#c88389] font-normal lowercase">
-                        (optional)
-                      </span>
-                    )}
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {availableShapes.map((shape) => {
-                      const isSelected = popupShape === shape;
-                      return (
-                        <button
-                          key={shape}
-                          type="button"
-                          onClick={() => setPopupShape(isSelected ? "" : shape)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                            isSelected
-                              ? "bg-[#c88389] text-white border-[#c88389] shadow-sm"
-                              : "bg-neutral-50 text-neutral-700 border-neutral-200 hover:border-[#c88389]"
-                          }`}
-                        >
-                          {shape}
-                        </button>
-                      );
-                    })}
+                {availableShapes.length > 0 && (
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#a0604a] mb-2">
+                      Select Shape{" "}
+                      {!popupShape && (
+                        <span className="text-[#c88389] font-normal lowercase">
+                          (optional)
+                        </span>
+                      )}
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {availableShapes.map((shape) => {
+                        const isSelected = popupShape === shape;
+                        return (
+                          <button
+                            key={shape}
+                            type="button"
+                            onClick={() => setPopupShape(isSelected ? "" : shape)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                              isSelected
+                                ? "bg-[#c88389] text-white border-[#c88389] shadow-sm"
+                                : "bg-neutral-50 text-neutral-700 border-neutral-200 hover:border-[#c88389]"
+                            }`}
+                          >
+                            {shape}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* ── 2. Length Selection ── */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#a0604a] mb-2">
-                    Select Length{" "}
-                    {!popupLength && (
-                      <span className="text-[#c88389] font-normal lowercase">
-                        (optional)
-                      </span>
-                    )}
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {availableLengths.map((len) => {
-                      const isSelected = popupLength === len;
-                      return (
-                        <button
-                          key={len}
-                          type="button"
-                          onClick={() => setPopupLength(isSelected ? "" : len)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                            isSelected
-                              ? "bg-[#c88389] text-white border-[#c88389] shadow-sm"
-                              : "bg-neutral-50 text-neutral-700 border-neutral-200 hover:border-[#c88389]"
-                          }`}
-                        >
-                          {len}
-                        </button>
-                      );
-                    })}
+                {availableLengths.length > 0 && (
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#a0604a] mb-2">
+                      Select Length{" "}
+                      {!popupLength && (
+                        <span className="text-[#c88389] font-normal lowercase">
+                          (optional)
+                        </span>
+                      )}
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {availableLengths.map((len) => {
+                        const isSelected = popupLength === len;
+                        return (
+                          <button
+                            key={len}
+                            type="button"
+                            onClick={() => setPopupLength(isSelected ? "" : len)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                              isSelected
+                                ? "bg-[#c88389] text-white border-[#c88389] shadow-sm"
+                                : "bg-neutral-50 text-neutral-700 border-neutral-200 hover:border-[#c88389]"
+                            }`}
+                          >
+                            {len}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* ── 3. Size Selection ── */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#a0604a] mb-2">
-                    Select Size{" "}
-                    {!popupSize && (
-                      <span className="text-[#c88389] font-normal lowercase">
-                        (optional)
-                      </span>
-                    )}
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {availableSizes.map((sz) => {
-                      const isSelected = popupSize === sz;
-                      return (
-                        <button
-                          key={sz}
-                          type="button"
-                          onClick={() => setPopupSize(isSelected ? "" : sz)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                            isSelected
-                              ? "bg-[#c88389] text-white border-[#c88389] shadow-sm"
-                              : "bg-neutral-50 text-neutral-700 border-neutral-200 hover:border-[#c88389]"
-                          }`}
-                        >
-                          {sz}
-                        </button>
-                      );
-                    })}
+                {availableSizes.length > 0 && (
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#a0604a] mb-2">
+                      Select Size{" "}
+                      {!popupSize && (
+                        <span className="text-[#c88389] font-normal lowercase">
+                          (optional)
+                        </span>
+                      )}
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {availableSizes.map((sz) => {
+                        const isSelected = popupSize === sz;
+                        return (
+                          <button
+                            key={sz}
+                            type="button"
+                            onClick={() => setPopupSize(isSelected ? "" : sz)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                              isSelected
+                                ? "bg-[#c88389] text-white border-[#c88389] shadow-sm"
+                                : "bg-neutral-50 text-neutral-700 border-neutral-200 hover:border-[#c88389]"
+                            }`}
+                          >
+                            {sz}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* ── 4. Shade Selection ── */}
-                {colors.length > 0 && (
+                {validColors.length > 0 && (
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider text-[#a0604a] mb-2">
                       Select Shade:{" "}
@@ -459,7 +471,7 @@ export default function VerticalProductCard({
                       </span>
                     </label>
                     <div className="flex items-center gap-3">
-                      {colors.map((color, i) => {
+                      {validColors.map((color, i) => {
                         const colorKey = color.label || color.hex;
                         const isSelected = popupShade === colorKey;
                         return (

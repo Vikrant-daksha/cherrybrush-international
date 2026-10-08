@@ -141,11 +141,26 @@ export default function NailProductCard({
   const [wishlisted, setWishlisted] = useState(false);
   const [showQuickView, setShowQuickView] = useState(false);
   const [showExtraInfo, setShowExtraInfo] = useState(false);
-  const [selectedShape, setSelectedShape] = useState(shapes[0] ?? "");
-  const [selectedLength, setSelectedLength] = useState(lengths[0] ?? "");
-  const [selectedNailSize, setSelectedNailSize] = useState(nailSizes[0] ?? "");
+
+  // Filter incoming variants to avoid ghost or empty strings
+  const validColors = (colors || []).filter(
+    (c) => c && (c.hex?.trim?.() || c.label?.trim?.() || (c as any).color?.trim?.()),
+  );
+  const validShapes = (shapes || []).filter(
+    (s) => typeof s === "string" && s.trim().length > 0,
+  );
+  const validLengths = (lengths || []).filter(
+    (l) => typeof l === "string" && l.trim().length > 0,
+  );
+  const validNailSizes = (nailSizes || []).filter(
+    (sz) => typeof sz === "string" && sz.trim().length > 0,
+  );
+
+  const [selectedShape, setSelectedShape] = useState(validShapes[0] ?? "");
+  const [selectedLength, setSelectedLength] = useState(validLengths[0] ?? "");
+  const [selectedNailSize, setSelectedNailSize] = useState(validNailSizes[0] ?? "");
   const [selectedColor, setSelectedColor] = useState(
-    colors[0]?.label || colors[0]?.hex || "",
+    validColors[0]?.label || validColors[0]?.hex || "",
   );
   const [shapeDropdownOpen, setShapeDropdownOpen] = useState(false);
   const [lengthDropdownOpen, setLengthDropdownOpen] = useState(false);
@@ -268,14 +283,14 @@ export default function NailProductCard({
           </p>
         </div>
 
-        <div className="my-3">
-          <div className="text-xs text-[#c25d65] uppercase tracking-widest">
-            Shades
-          </div>
-          <div className="min-h-9 flex items-center">
-            {colors.length > 0 && (
+        {validColors.length > 0 && (
+          <div className="my-3">
+            <div className="text-xs text-[#c25d65] uppercase tracking-widest">
+              Shades
+            </div>
+            <div className="min-h-9 flex items-center">
               <div className="flex items-center gap-3 py-2">
-                {colors.slice(0, 3).map((color, i) => {
+                {validColors.slice(0, 3).map((color, i) => {
                   const colorKey = color.label || color.hex;
                   const isSelected = selectedColor === colorKey;
                   return (
@@ -296,23 +311,23 @@ export default function NailProductCard({
                     />
                   );
                 })}
-                {extraColorsCount > 0 && (
+                {validColors.length > 3 && (
                   <div className="w-6 h-6 rounded-full bg-[#f0e0e5] border-2 border-white shadow-sm flex items-center justify-center">
                     <span className="font-sans text-[10px] font-semibold text-[#a0604a]">
-                      +{extraColorsCount}
+                      +{validColors.length - 3}
                     </span>
                   </div>
                 )}
               </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ── Product Variant Selectors (Dynamic Columns) ── */}
         {(() => {
-          const hasShapes = shapes && shapes.length > 0;
-          const hasLengths = lengths && lengths.length > 0;
-          const hasSizes = nailSizes && nailSizes.length > 0;
+          const hasShapes = validShapes.length > 0;
+          const hasLengths = validLengths.length > 0;
+          const hasSizes = validNailSizes.length > 0;
           const activeCount =
             (hasShapes ? 1 : 0) + (hasLengths ? 1 : 0) + (hasSizes ? 1 : 0);
 
@@ -389,7 +404,7 @@ export default function NailProductCard({
                         onClick={() => setShapeDropdownOpen(false)}
                       />
                       <div className="absolute left-0 top-full mt-0.5 z-50 w-full min-w-25 bg-white border border-[#e8c0c8] rounded shadow-md overflow-hidden">
-                        {shapes.map((s) => {
+                        {validShapes.map((s) => {
                           const isActive = selectedShape === s;
                           return (
                             <button
@@ -471,7 +486,7 @@ export default function NailProductCard({
                         onClick={() => setLengthDropdownOpen(false)}
                       />
                       <div className="absolute left-0 top-full mt-0.5 z-50 w-full min-w-25 bg-white border border-[#e8c0c8] rounded shadow-md overflow-hidden">
-                        {lengths.map((l) => {
+                        {validLengths.map((l) => {
                           const isActive = selectedLength === l;
                           return (
                             <button
@@ -540,7 +555,7 @@ export default function NailProductCard({
                         onClick={() => setSizeDropdownOpen(false)}
                       />
                       <div className="absolute left-0 top-full mt-0.5 z-50 w-full min-w-25 bg-white border border-[#e8c0c8] rounded shadow-md overflow-hidden">
-                        {nailSizes.map((sz) => {
+                        {validNailSizes.map((sz) => {
                           const isActive = selectedNailSize === sz;
                           return (
                             <button
@@ -667,13 +682,11 @@ export default function NailProductCard({
                   price: parseFloat(String(price).replace(/[^0-9.]/g, "")) || 0,
                   image: imageSrc,
                   collection: collection,
-                  shape: selectedShape,
-                  length: selectedLength,
-                  size: selectedNailSize,
-                  color:
-                    selectedColor || colors?.[0]?.label || colors?.[0]?.hex,
-                  shade:
-                    selectedColor || colors?.[0]?.label || colors?.[0]?.hex,
+                  shape: selectedShape || undefined,
+                  length: selectedLength || undefined,
+                  size: selectedNailSize || undefined,
+                  color: selectedColor || undefined,
+                  shade: selectedColor || undefined,
                   quantity: 1,
                 });
                 onAddToBag?.();

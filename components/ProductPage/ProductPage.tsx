@@ -155,9 +155,27 @@ export default function ProductPage({
   const { addToCart } = useCart();
   const searchParams = useSearchParams();
 
-  // Use product data directly — no merging with defaults so ghost data never leaks in
+  // Filter incoming variants to avoid ghost or empty strings
+  const validShapes = (product.shapes || []).filter(
+    (s) => s && (s.name?.trim?.() || s.id?.trim?.()),
+  );
+  const validLengths = (product.lengths || []).filter(
+    (l) => typeof l === "string" && l.trim().length > 0,
+  );
+  const validSizes = (product.sizes || []).filter(
+    (sz) => typeof sz === "string" && sz.trim().length > 0,
+  );
+  const validColors = (product.colors || []).filter(
+    (c) => c && (c.color?.trim?.() || c.name?.trim?.() || c.id?.trim?.()),
+  );
+
+  // Use product data directly with strictly validated variants
   const data: Partial<ProductData> = {
     ...product,
+    shapes: validShapes,
+    lengths: validLengths,
+    sizes: validSizes,
+    colors: validColors,
     features: product.features || defaultFeatures, // trust badges are UI-only, always show
   };
 
@@ -169,20 +187,20 @@ export default function ProductPage({
   // State Management
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedShape, setSelectedShape] = useState<string>(
-    urlShape || data.shapes?.[1]?.id || data.shapes?.[0]?.id || "almond",
+    urlShape || validShapes[0]?.id || "",
   );
   const [selectedLength, setSelectedLength] = useState<string>(
-    urlLength || data.lengths?.[1] || data.lengths?.[0] || "Medium",
+    urlLength || validLengths[0] || "",
   );
   const [selectedSize, setSelectedSize] = useState<string>(
-    urlSize || data.sizes?.[2] || data.sizes?.[0] || "M",
+    urlSize || validSizes[0] || "",
   );
   const [selectedColor, setSelectedColor] = useState<string>(
     urlShade ||
-      data.colors?.[0]?.name ||
-      data.colors?.[0]?.color ||
-      data.colors?.[0]?.id ||
-      "pink",
+      validColors[0]?.name ||
+      validColors[0]?.color ||
+      validColors[0]?.id ||
+      "",
   );
   const [sizeChartModal, setSizeChartModal] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -208,11 +226,11 @@ export default function ProductPage({
       image:
         data.images?.[selectedImageIndex] || data.images?.[0] || "/product.png",
       collection: data.subtitle,
-      shape: selectedShape,
-      length: selectedLength,
-      size: selectedSize,
-      color: selectedColor,
-      shade: selectedColor,
+      shape: selectedShape || undefined,
+      length: selectedLength || undefined,
+      size: selectedSize || undefined,
+      color: selectedColor || undefined,
+      shade: selectedColor || undefined,
       quantity: 1,
     });
 
@@ -228,7 +246,7 @@ export default function ProductPage({
 
   return (
     <main
-      className={`w-full min-h-[95vh] bg-[#fdfaf8] text-[#3d2b1f] flex justify-center items-center mt-10 px-4 sm:px-6 lg:px-12 py-10 md:py-16 ${className}`}
+      className={`w-full min-h-[95vh] bg-[#fdfaf8] text-[#3d2b1f] flex justify-center items-center mt-28 px-4 sm:px-6 lg:px-12 py-10 md:py-16 ${className}`}
       style={{
         fontFamily: 'var(--font-dm-sans, "DM Sans", sans-serif)',
       }}
@@ -349,7 +367,7 @@ export default function ProductPage({
             </div>
 
             {/* Description */}
-            <p className="text-sm md:text-[15px] text-[#6d554a] leading-relaxed pt-1 pr-32 max-w-lg">
+            <p className="text-sm md:text-[15px] text-[#6d554a] leading-relaxed pt-1 line-clamp-3 max-w-lg">
               {data.description}
             </p>
           </div>

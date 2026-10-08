@@ -12,6 +12,9 @@ import MarqueeCarousel from "@/components/common/MarqueeCarousel";
 import { connectDB } from "@/lib/db";
 import Product from "@/lib/product.model";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface ProductItem {
   isHero: boolean;
   isFeatured: boolean;
@@ -36,7 +39,9 @@ interface ProductItem {
 async function getProducts(): Promise<ProductItem[]> {
   try {
     await connectDB();
-    const docs = await Product.find({}).sort({ createdAt: -1 }).lean();
+    const docs = await Product.find({ inStock: { $ne: false } })
+      .sort({ createdAt: -1 })
+      .lean();
     return docs.map((doc: any) => ({
       _id: doc._id.toString(),
       name: doc.name || "",
@@ -44,8 +49,7 @@ async function getProducts(): Promise<ProductItem[]> {
       description: doc.description || "",
       price: doc.price || 0,
       collection: doc.collection || "Press-On Nails",
-      images:
-        doc.images && doc.images.length > 0 ? doc.images : ["/product.png"],
+      images: doc.images || [],
       lengths: doc.lengths || [],
       sizes: doc.sizes || [],
       colors: doc.colors || [],
@@ -66,15 +70,21 @@ async function getProducts(): Promise<ProductItem[]> {
 
 const Home = async () => {
   const products = await getProducts();
-  const heroProduct = products?.find((p) => p.isHero);
-  const heroProduct2 =
-    products?.find((p) => p._id !== heroProduct?._id) || heroProduct;
+  const hasProducts = products && products.length > 0;
 
-  const featuredProducts = products?.filter((p) => p.isFeatured);
+  const heroProduct =
+    products?.find((p) => p.isHero) || (hasProducts ? products[0] : null);
+  const heroProduct2 =
+    products?.find(
+      (p) => p._id !== heroProduct?._id && (p.isHero || p.isFeatured),
+    ) ||
+    (hasProducts && products.length > 1 && products[1]._id !== heroProduct?._id
+      ? products[1]
+      : null);
+
+  const featuredProducts = products?.filter((p) => p.isFeatured) || [];
   const displayFeaturedProducts =
-    featuredProducts && featuredProducts.length > 0
-      ? featuredProducts
-      : products;
+    featuredProducts.length > 0 ? featuredProducts : products || [];
 
   const heroHref1 = heroProduct
     ? `/collection/${heroProduct.slug || heroProduct._id}`
@@ -107,57 +117,79 @@ const Home = async () => {
           </p>
 
           <div className="flex flex-row flex-wrap gap-4 mt-8">
-            <Link
-              href={heroHref1}
-              className="px-6 py-3.5 bg-[#c88389] hover:bg-[#b57379] text-white uppercase text-[14px] tracking-[0.08em] font-semibold transition-all duration-300 shadow-md inline-block"
-            >
-              Shop Featured Set
-            </Link>
-            <Link
-              href="/collection"
-              className="px-6 py-3.5 border border-white/30 hover:border-white/60 hover:bg-white/10 text-white uppercase text-[14px] tracking-[0.08em] font-semibold transition-all duration-300 inline-block"
-            >
-              Explore Collection
-            </Link>
+            {heroProduct ? (
+              <>
+                <Link
+                  href={heroHref1}
+                  className="px-6 py-3.5 bg-[#c88389] hover:bg-[#b57379] text-white uppercase text-[14px] tracking-[0.08em] font-semibold transition-all duration-300 shadow-md inline-block"
+                >
+                  Shop Featured Set
+                </Link>
+                <Link
+                  href="/collection"
+                  className="px-6 py-3.5 border border-white/30 hover:border-white/60 hover:bg-white/10 text-white uppercase text-[14px] tracking-[0.08em] font-semibold transition-all duration-300 inline-block"
+                >
+                  Explore Collection
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/collection"
+                  className="px-6 py-3.5 bg-[#c88389] hover:bg-[#b57379] text-white uppercase text-[14px] tracking-[0.08em] font-semibold transition-all duration-300 shadow-md inline-block"
+                >
+                  Explore Collection
+                </Link>
+                <Link
+                  href="/whats-included"
+                  className="px-6 py-3.5 border border-white/30 hover:border-white/60 hover:bg-white/10 text-white uppercase text-[14px] tracking-[0.08em] font-semibold transition-all duration-300 inline-block"
+                >
+                  What's Included
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
-        {/* Dynamic Clickable Hero Polaroid Showcase */}
+        {/* Dynamic Hero Showcase */}
         <div className="w-full md:w-1/2 h-1/2 md:h-full flex items-center justify-center z-10 relative">
           <img
-            src="sample_processed.png"
+            src="/sample_processed.png"
             alt="Hero Background"
             loading="eager"
             className="absolute object-contain h-full right-42 top-24 z-10 filter drop-shadow-[0_20px_45px_rgba(61,43,31,0.42)] pointer-events-none"
           />
 
-          {/* Top Polaroid (Clickable -> Product Page 1) */}
-          <Link
-            href={heroHref1}
-            className="absolute top-32 right-48 group hover:scale-100 transition-transform duration-300"
-          >
-            <Polaroid
-              imageSrc={heroProduct?.images?.[0] || "/product.png"}
-              imageAlt={heroProduct?.name || "Cherry Satin"}
-              caption={heroProduct?.name || "Cherry Satin"}
-              rotate="left-hard"
-              className="w-78"
-            />
-          </Link>
+          {/* Render Polaroids ONLY when actual products exist in MongoDB */}
+          {heroProduct && (
+            <Link
+              href={heroHref1}
+              className="absolute top-32 right-48 group hover:scale-100 transition-transform duration-300"
+            >
+              <Polaroid
+                imageSrc={heroProduct.images?.[0] || "/product.png"}
+                imageAlt={heroProduct.name}
+                caption={heroProduct.name}
+                rotate="left-hard"
+                className="w-78"
+              />
+            </Link>
+          )}
 
-          {/* Bottom Polaroid (Clickable -> Product Page 2) */}
-          <Link
-            href={heroHref2}
-            className="absolute bottom-14 right-40 group hover:scale-100 transition-transform duration-300"
-          >
-            <Polaroid
-              imageSrc={heroProduct2?.images?.[0] || "/product.png"}
-              imageAlt={heroProduct2?.name || "Cherry Satin"}
-              caption={heroProduct2?.name || "Cherry Satin"}
-              rotate="right-soft"
-              className="w-78"
-            />
-          </Link>
+          {heroProduct2 && (
+            <Link
+              href={heroHref2}
+              className="absolute bottom-14 right-40 group hover:scale-100 transition-transform duration-300"
+            >
+              <Polaroid
+                imageSrc={heroProduct2.images?.[0] || "/product.png"}
+                imageAlt={heroProduct2.name}
+                caption={heroProduct2.name}
+                rotate="right-soft"
+                className="w-78"
+              />
+            </Link>
+          )}
         </div>
       </div>
 
@@ -165,100 +197,136 @@ const Home = async () => {
         <ChooseYourMood />
       </section>
 
-      {/* ── Section 1: End-to-End Marquee Carousel + Floating Side Arrows ── */}
-      <section className="py-16 bg-[#fafaf7] overflow-hidden">
-        <div className="px-8 md:px-16 mb-8 flex items-end justify-between">
-          <div>
-            <p className="font-sans text-[10px] tracking-[0.2em] uppercase text-[#c88389] font-semibold mb-1">
-              Handcrafted with love
-            </p>
-            <h2 className="font-serif text-3xl md:text-4xl font-light text-[#3d2b1f] tracking-wide">
-              Featured Sets
-            </h2>
-          </div>
-          <button className="font-sans text-xs tracking-widest uppercase text-[#a88a6a] hover:text-[#3d2b1f] transition-colors border-b border-[#a88a6a]/40 hover:border-[#3d2b1f]/40 pb-0.5">
-            View All
-          </button>
-        </div>
-
-        <MarqueeCarousel speed={0.8} className="px-20">
-          {displayFeaturedProducts?.map((p) => (
-            <div
-              key={p._id}
-              className="flex-shrink-0 w-[88vw] sm:w-[580px] md:w-[680px] lg:w-[740px] aspect-[1.65/1] transition-transform hover:-translate-y-1 block"
-            >
-              <NailProductCard
-                href={`/collection/${p.slug || p._id}`}
-                imageSrc={p.images?.[0] || "/product.png"}
-                name={p.name}
-                collection={p.collection}
-                style={p?.style}
-                description={p.description}
-                shapes={p?.shapes}
-                nailSizes={p?.sizes}
-                lengths={p?.lengths}
-                price={`₹${p.price}`}
-                badge={p?.badge}
-                rating={p?.rating ?? 4.5}
-                reviewCount={p?.reviewCount ?? 0}
-                packageType={p?.packageType}
-                colors={p.colors || []}
-                extraColorsCount={
-                  (p.colors?.length || 0) > 4 ? (p.colors?.length || 0) - 4 : 0
-                }
-              />
+      {hasProducts ? (
+        <>
+          {/* ── Section 1: End-to-End Marquee Carousel + Floating Side Arrows ── */}
+          <section className="py-16 bg-[#fafaf7] overflow-hidden">
+            <div className="px-8 md:px-16 mb-8 flex items-end justify-between">
+              <div>
+                <p className="font-sans text-[10px] tracking-[0.2em] uppercase text-[#c88389] font-semibold mb-1">
+                  Handcrafted with love
+                </p>
+                <h2 className="font-serif text-3xl md:text-4xl font-light text-[#3d2b1f] tracking-wide">
+                  Featured Sets
+                </h2>
+              </div>
+              <Link
+                href="/collection"
+                className="font-sans text-xs tracking-widest uppercase text-[#a88a6a] hover:text-[#3d2b1f] transition-colors border-b border-[#a88a6a]/40 hover:border-[#3d2b1f]/40 pb-0.5"
+              >
+                View All
+              </Link>
             </div>
-          ))}
-        </MarqueeCarousel>
-      </section>
 
-      {/* ── Section 2: Touch Drag + Floating Side Arrows (25 Products) ── */}
-      <section className="py-12 bg-[#fdfaf8]">
-        <div className="px-8 md:px-16 mb-8 flex items-end justify-between">
-          <div>
-            <p className="font-sans text-[10px] tracking-[0.2em] uppercase text-[#c88389] font-semibold mb-1">
-              Popular Picks
-            </p>
-            <h2 className="font-serif text-3xl md:text-4xl font-light text-[#3d2b1f] tracking-wide">
-              Trending Designs
-            </h2>
-          </div>
-          <button className="font-sans text-xs tracking-widest uppercase text-[#a88a6a] hover:text-[#3d2b1f] transition-colors border-b border-[#a88a6a]/40 hover:border-[#3d2b1f]/40 pb-0.5">
-            Explore All
-          </button>
-        </div>
+            <MarqueeCarousel speed={0.8} className="px-20">
+              {displayFeaturedProducts?.map((p) => (
+                <div
+                  key={p._id}
+                  className="flex-shrink-0 w-[88vw] sm:w-[580px] md:w-[680px] lg:w-[740px] aspect-[1.65/1] transition-transform hover:-translate-y-1 block"
+                >
+                  <NailProductCard
+                    href={`/collection/${p.slug || p._id}`}
+                    imageSrc={p.images?.[0] || "/product.png"}
+                    name={p.name}
+                    collection={p.collection}
+                    style={p?.style}
+                    description={p.description}
+                    shapes={p?.shapes}
+                    nailSizes={p?.sizes}
+                    lengths={p?.lengths}
+                    price={`₹${p.price}`}
+                    badge={p?.badge}
+                    rating={p?.rating ?? 4.5}
+                    reviewCount={p?.reviewCount ?? 0}
+                    packageType={p?.packageType}
+                    colors={p.colors || []}
+                    extraColorsCount={
+                      (p.colors?.length || 0) > 4
+                        ? (p.colors?.length || 0) - 4
+                        : 0
+                    }
+                  />
+                </div>
+              ))}
+            </MarqueeCarousel>
+          </section>
 
-        <DragScrollContainer className="flex gap-6 pb-4 px-8 md:px-16">
-          {products?.slice(0, 25).map((p) => (
-            <div
-              key={p._id}
-              className="w-72 flex-shrink-0 block transition-transform hover:-translate-y-1"
-            >
-              <VerticalProductCard
-                href={`/collection/${p.slug || p._id}`}
-                imageSrc={p.images?.[0] || "/product.png"}
-                imageAlt={p.name}
-                name={p.name}
-                collection={p.collection}
-                style={p?.style}
-                description={p.description}
-                shapes={p?.shapes}
-                lengths={p?.lengths}
-                sizes={p?.sizes}
-                price={`₹${p.price}`}
-                badge={p?.badge}
-                rating={p?.rating ?? 5}
-                reviewCount={p?.reviewCount ?? 0}
-                packageType={p?.packageType}
-                colors={p.colors || []}
-                extraColorsCount={
-                  (p.colors?.length || 0) > 2 ? (p.colors?.length || 0) - 2 : 0
-                }
-              />
+          {/* ── Section 2: Touch Drag + Floating Side Arrows (25 Products) ── */}
+          <section className="py-12 bg-[#fdfaf8]">
+            <div className="px-8 md:px-16 mb-8 flex items-end justify-between">
+              <div>
+                <p className="font-sans text-[10px] tracking-[0.2em] uppercase text-[#c88389] font-semibold mb-1">
+                  Popular Picks
+                </p>
+                <h2 className="font-serif text-3xl md:text-4xl font-light text-[#3d2b1f] tracking-wide">
+                  Trending Designs
+                </h2>
+              </div>
+              <Link
+                href="/collection"
+                className="font-sans text-xs tracking-widest uppercase text-[#a88a6a] hover:text-[#3d2b1f] transition-colors border-b border-[#a88a6a]/40 hover:border-[#3d2b1f]/40 pb-0.5"
+              >
+                Explore All
+              </Link>
             </div>
-          ))}
-        </DragScrollContainer>
-      </section>
+
+            <DragScrollContainer className="flex gap-6 pb-4 px-8 md:px-16">
+              {products?.slice(0, 25).map((p) => (
+                <div
+                  key={p._id}
+                  className="w-72 flex-shrink-0 block transition-transform hover:-translate-y-1"
+                >
+                  <VerticalProductCard
+                    href={`/collection/${p.slug || p._id}`}
+                    imageSrc={p.images?.[0] || "/product.png"}
+                    imageAlt={p.name}
+                    name={p.name}
+                    collection={p.collection}
+                    style={p?.style}
+                    description={p.description}
+                    shapes={p?.shapes}
+                    lengths={p?.lengths}
+                    sizes={p?.sizes}
+                    price={`₹${p.price}`}
+                    badge={p?.badge}
+                    rating={p?.rating ?? 5}
+                    reviewCount={p?.reviewCount ?? 0}
+                    packageType={p?.packageType}
+                    colors={p.colors || []}
+                    extraColorsCount={
+                      (p.colors?.length || 0) > 2
+                        ? (p.colors?.length || 0) - 2
+                        : 0
+                    }
+                  />
+                </div>
+              ))}
+            </DragScrollContainer>
+          </section>
+        </>
+      ) : (
+        /* ── Empty State when no products exist in MongoDB ── */
+        <section className="py-20 bg-[#fafaf7] text-center px-6">
+          <div className="max-w-md mx-auto bg-white rounded-3xl border border-[#e8c0c8]/60 p-10 shadow-xs">
+            <div className="w-16 h-16 rounded-full bg-[#fdf0f2] border border-[#e8c0c8] flex items-center justify-center text-3xl mx-auto mb-4">
+              💅
+            </div>
+            <h2 className="font-serif text-3xl font-light text-[#3d2b1f] mb-2">
+              New Collection Coming Soon
+            </h2>
+            <p className="font-sans text-xs text-[#8a7060] leading-relaxed mb-6">
+              Our handcrafted luxury press-on sets are currently being prepared.
+              Check back shortly or explore our guides below!
+            </p>
+            <Link
+              href="/whats-included"
+              className="inline-block px-6 py-2.5 rounded-xl bg-[#c88389] hover:bg-[#b57379] text-white text-xs font-semibold uppercase tracking-wider transition-all shadow-md"
+            >
+              See What's Included
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* ── Additional Sections ── */}
       <section>

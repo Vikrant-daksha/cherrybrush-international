@@ -429,6 +429,9 @@ export default function CreateProductForm({
                     }
                     price={price !== "" ? `₹${price}` : "₹799"}
                     colors={colors}
+                    shapes={shapes}
+                    lengths={lengths}
+                    sizes={sizes}
                   />
                 </div>
               </div>

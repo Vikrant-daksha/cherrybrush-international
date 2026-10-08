@@ -11,7 +11,10 @@ interface PageProps {
 
 import { slugify } from "@/lib/slug";
 
-// Helper to fetch and normalize product from MongoDB or Demo fallback
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+// Helper to fetch and normalize product strictly from MongoDB
 async function getProductBySlug(
   slug: string,
 ): Promise<Partial<ProductData> | null> {
@@ -41,25 +44,32 @@ async function getProductBySlug(
 
     if (dbDoc) {
       // Normalize DB record to match ProductPage component expectations
-      const mappedShapes = (
-        dbDoc.shapes || ["oval", "almond", "coffin", "square", "stiletto"]
-      ).map((sh: string) => {
-        const lower = typeof sh === "string" ? sh.toLowerCase() : "";
-        return {
-          id: lower || "shape",
-          name:
-            typeof sh === "string"
-              ? sh.charAt(0).toUpperCase() + sh.slice(1)
-              : "Shape",
-          shapeType: lower || "oval",
-        };
-      });
+      const mappedShapes = (dbDoc.shapes || [])
+        .filter((sh: any) => typeof sh === "string" && sh.trim().length > 0)
+        .map((sh: string) => {
+          const lower = sh.toLowerCase();
+          return {
+            id: lower,
+            name: sh.charAt(0).toUpperCase() + sh.slice(1),
+            shapeType: lower,
+          };
+        });
 
-      const mappedColors = (dbDoc.colors || []).map((c: any, i: number) => ({
-        id: `c-${i}`,
-        name: c.label || `Color ${i + 1}`,
-        color: c.hex || c.color || "#e8a0b0",
-      }));
+      const mappedColors = (dbDoc.colors || [])
+        .filter((c: any) => c && (c.hex?.trim?.() || c.color?.trim?.()))
+        .map((c: any, i: number) => ({
+          id: `c-${i}`,
+          name: c.label || c.name || `Color ${i + 1}`,
+          color: c.hex || c.color,
+        }));
+
+      const validLengths = (dbDoc.lengths || []).filter(
+        (l: any) => typeof l === "string" && l.trim().length > 0,
+      );
+
+      const validSizes = (dbDoc.sizes || []).filter(
+        (s: any) => typeof s === "string" && s.trim().length > 0,
+      );
 
       return {
         id: dbDoc._id.toString(),
@@ -74,11 +84,10 @@ async function getProductBySlug(
           dbDoc.images && dbDoc.images.length > 0
             ? dbDoc.images
             : ["/product.png"],
-        shapes: mappedShapes,
+        shapes: mappedShapes.length > 0 ? mappedShapes : undefined,
         colors: mappedColors.length > 0 ? mappedColors : undefined,
-        lengths:
-          dbDoc.lengths && dbDoc.lengths.length > 0 ? dbDoc.lengths : undefined,
-        sizes: dbDoc.sizes && dbDoc.sizes.length > 0 ? dbDoc.sizes : undefined,
+        lengths: validLengths.length > 0 ? validLengths : undefined,
+        sizes: validSizes.length > 0 ? validSizes : undefined,
         packageType: dbDoc.packageType,
       };
     }

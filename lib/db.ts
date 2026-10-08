@@ -24,21 +24,7 @@ if (!global.mongooseCache) {
   global.mongooseCache = cached;
 }
 
-// ── Eager Connection: Trigger DB connection immediately when module is loaded on server ──
-if (MONGO_URI && !cached.promise) {
-  cached.promise = mongoose
-    .connect(MONGO_URI, { bufferCommands: false })
-    .then((mongooseInstance) => {
-      console.log("✅ MongoDB Eagerly Connected Successfully");
-      cached.conn = mongooseInstance;
-      return mongooseInstance;
-    })
-    .catch((err) => {
-      cached.promise = null;
-      console.error("❌ Eager MongoDB connection error:", err);
-      throw err;
-    });
-}
+// Connection is lazily established when connectDB() is invoked
 
 export const connectDB = async () => {
   if (cached.conn) {

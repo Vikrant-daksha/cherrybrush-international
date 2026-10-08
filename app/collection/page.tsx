@@ -196,8 +196,19 @@ function CollectionContent() {
               />
             ))}
           </div>
+        ) : products.length === 0 ? (
+          /* ── Empty Catalog State (No products in DB) ── */
+          <div className="text-center py-24 bg-white rounded-3xl border border-[#e8c0c8]/40 p-8 shadow-xs my-8">
+            <p className="text-4xl mb-3">✨</p>
+            <h3 className="font-serif text-2xl font-normal text-[#3d2b1f]">
+              Collection Launching Soon
+            </h3>
+            <p className="font-sans text-xs text-[#8a7060] mt-1 max-w-sm mx-auto">
+              There are currently no products in the catalog. Please check back soon or explore our sizing and package guides!
+            </p>
+          </div>
         ) : filteredProducts.length === 0 ? (
-          /* ── Empty State ── */
+          /* ── Empty Filtered / Search State ── */
           <div className="text-center py-24 bg-white rounded-3xl border border-[#e8c0c8]/40 p-8 shadow-xs my-8">
             <p className="text-4xl mb-3">🔍</p>
             <h3 className="font-serif text-2xl font-normal text-[#3d2b1f]">
