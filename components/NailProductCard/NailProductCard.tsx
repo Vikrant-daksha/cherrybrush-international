@@ -144,7 +144,8 @@ export default function NailProductCard({
 
   // Filter incoming variants to avoid ghost or empty strings
   const validColors = (colors || []).filter(
-    (c) => c && (c.hex?.trim?.() || c.label?.trim?.() || (c as any).color?.trim?.()),
+    (c) =>
+      c && (c.hex?.trim?.() || c.label?.trim?.() || (c as any).color?.trim?.()),
   );
   const validShapes = (shapes || []).filter(
     (s) => typeof s === "string" && s.trim().length > 0,
@@ -158,7 +159,9 @@ export default function NailProductCard({
 
   const [selectedShape, setSelectedShape] = useState(validShapes[0] ?? "");
   const [selectedLength, setSelectedLength] = useState(validLengths[0] ?? "");
-  const [selectedNailSize, setSelectedNailSize] = useState(validNailSizes[0] ?? "");
+  const [selectedNailSize, setSelectedNailSize] = useState(
+    validNailSizes[0] ?? "",
+  );
   const [selectedColor, setSelectedColor] = useState(
     validColors[0]?.label || validColors[0]?.hex || "",
   );
@@ -283,45 +286,47 @@ export default function NailProductCard({
           </p>
         </div>
 
-        {validColors.length > 0 && (
-          <div className="my-3">
-            <div className="text-xs text-[#c25d65] uppercase tracking-widest">
-              Shades
-            </div>
-            <div className="min-h-9 flex items-center">
-              <div className="flex items-center gap-3 py-2">
-                {validColors.slice(0, 3).map((color, i) => {
-                  const colorKey = color.label || color.hex;
-                  const isSelected = selectedColor === colorKey;
-                  return (
-                    <button
-                      key={i}
-                      title={color.label || color.hex}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setSelectedColor(colorKey);
-                      }}
-                      className={`w-6 h-6 rounded-full border shadow-sm transition-all hover:scale-110 ${
-                        isSelected
-                          ? "ring-2 ring-[#c88389] border-[#c25d65] scale-105"
-                          : "border-[#eeb9c9] hover:border-[#c88389]"
-                      }`}
-                      style={{ backgroundColor: color.hex }}
-                    />
-                  );
-                })}
-                {validColors.length > 3 && (
-                  <div className="w-6 h-6 rounded-full bg-[#f0e0e5] border-2 border-white shadow-sm flex items-center justify-center">
-                    <span className="font-sans text-[10px] font-semibold text-[#a0604a]">
-                      +{validColors.length - 3}
-                    </span>
-                  </div>
-                )}
+        <div className="my-3">
+          {validColors.length > 0 && (
+            <>
+              <div className="text-xs text-[#c25d65] uppercase tracking-widest">
+                Shades
               </div>
-            </div>
-          </div>
-        )}
+              <div className="min-h-9 flex items-center">
+                <div className="flex items-center gap-3 py-2">
+                  {validColors.slice(0, 3).map((color, i) => {
+                    const colorKey = color.label || color.hex;
+                    const isSelected = selectedColor === colorKey;
+                    return (
+                      <button
+                        key={i}
+                        title={color.label || color.hex}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setSelectedColor(colorKey);
+                        }}
+                        className={`w-6 h-6 rounded-full border shadow-sm transition-all hover:scale-110 ${
+                          isSelected
+                            ? "ring-2 ring-[#c88389] border-[#c25d65] scale-105"
+                            : "border-[#eeb9c9] hover:border-[#c88389]"
+                        }`}
+                        style={{ backgroundColor: color.hex }}
+                      />
+                    );
+                  })}
+                  {validColors.length > 3 && (
+                    <div className="w-6 h-6 rounded-full bg-[#f0e0e5] border-2 border-white shadow-sm flex items-center justify-center">
+                      <span className="font-sans text-[10px] font-semibold text-[#a0604a]">
+                        +{validColors.length - 3}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
 
         {/* ── Product Variant Selectors (Dynamic Columns) ── */}
         {(() => {

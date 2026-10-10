@@ -23,6 +23,9 @@ export async function POST(req: NextRequest) {
       name,
       slug,
       customSlug,
+      subtitle,
+      subTitle,
+      shortDescription,
       productDescription,
       description,
       productPrice,
@@ -44,6 +47,9 @@ export async function POST(req: NextRequest) {
 
     // Normalizing field names for flexibility
     const finalName = productName || name;
+    const rawSubtitle = subtitle || subTitle || shortDescription;
+    const finalSubtitle =
+      typeof rawSubtitle === "string" ? rawSubtitle.trim().slice(0, 150) : undefined;
     const finalDescription = productDescription || description;
     const finalPrice =
       productPrice !== undefined ? Number(productPrice) : Number(price);
@@ -78,6 +84,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (rawSubtitle && typeof rawSubtitle === "string" && rawSubtitle.length > 150) {
+      return NextResponse.json(
+        { error: "Subtitle cannot exceed 150 characters" },
+        { status: 400 },
+      );
+    }
+
     if (finalPrice < 0) {
       return NextResponse.json(
         { error: "Product price cannot be negative" },
@@ -101,6 +114,7 @@ export async function POST(req: NextRequest) {
     const product = await Product.create({
       name: finalName,
       slug: finalSlug,
+      subtitle: finalSubtitle,
       description: finalDescription,
       price: finalPrice,
       collection: finalCollection,

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 interface DragScrollContainerProps {
@@ -19,6 +19,44 @@ export default function DragScrollContainer({
   const [isMouseDown, setIsMouseDown] = useState(false);
   const startXRef = useRef(0);
   const scrollLeftRef = useRef(0);
+
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  // Check whether content overflows container and what directions can be scrolled
+  const checkScroll = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    const maxScroll = scrollWidth - clientWidth;
+    const hasOverflow = maxScroll > 8; // 8px buffer for subpixel rounding
+
+    setCanScrollLeft(hasOverflow && scrollLeft > 8);
+    setCanScrollRight(hasOverflow && scrollLeft < maxScroll - 8);
+  }, []);
+
+  useEffect(() => {
+    checkScroll();
+    const el = containerRef.current;
+    if (!el) return;
+
+    const handleResize = () => checkScroll();
+    window.addEventListener("resize", handleResize);
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(() => {
+        checkScroll();
+      });
+      resizeObserver.observe(el);
+      Array.from(el.children).forEach((child) => resizeObserver?.observe(child));
+    }
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      resizeObserver?.disconnect();
+    };
+  }, [children, checkScroll]);
 
   // Instant smooth slide to center next/previous item
   const centerCard = (direction: "left" | "right") => {
@@ -80,28 +118,29 @@ export default function DragScrollContainer({
 
   return (
     <div className="relative group/carousel w-full">
-      {/* ── Left Arrow ── */}
-      <button
-        type="button"
-        onClick={() => centerCard("left")}
-        aria-label="Center previous item"
-        className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full border border-[#e8c0c8] bg-white/90 backdrop-blur-md shadow-xl text-[#3d2b1f] flex items-center justify-center transition-all duration-300 focus:outline-none opacity-90 group-hover/carousel:opacity-100 hover:bg-[#c88389] hover:text-white hover:border-[#c88389] hover:scale-110 active:scale-95"
-      >
-        <FiChevronLeft className="w-6 h-6" />
-      </button>
+      {/* ── Left Arrow: Disappears when items < screen width or already at left edge ── */}
+      {canScrollLeft && (
+        <button
+          type="button"
+          onClick={() => centerCard("left")}
+          aria-label="Center previous item"
+          className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full border border-[#e8c0c8] bg-white/90 backdrop-blur-md shadow-xl text-[#3d2b1f] flex items-center justify-center transition-all duration-300 focus:outline-none opacity-90 group-hover/carousel:opacity-100 hover:bg-[#c88389] hover:text-white hover:border-[#c88389] hover:scale-110 active:scale-95"
+        >
+          <FiChevronLeft className="w-6 h-6" />
+        </button>
+      )}
 
       {/* ── Scrollable Track Container ── */}
       <div
         ref={containerRef}
+        onScroll={checkScroll}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         onClickCapture={handleClickCapture}
         onDragStart={(e) => e.preventDefault()}
-        className={`select-none overflow-x-auto ${
-          isMouseDown ? "cursor-grabbing" : "cursor-grab"
-        } ${className}`}
+        className={`select-none overflow-x-auto ${className}`}
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
@@ -112,15 +151,17 @@ export default function DragScrollContainer({
         {children}
       </div>
 
-      {/* ── Right Arrow ── */}
-      <button
-        type="button"
-        onClick={() => centerCard("right")}
-        aria-label="Center next item"
-        className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full border border-[#e8c0c8] bg-white/90 backdrop-blur-md shadow-xl text-[#3d2b1f] flex items-center justify-center transition-all duration-300 focus:outline-none opacity-90 group-hover/carousel:opacity-100 hover:bg-[#c88389] hover:text-white hover:border-[#c88389] hover:scale-110 active:scale-95"
-      >
-        <FiChevronRight className="w-6 h-6" />
-      </button>
+      {/* ── Right Arrow: Disappears when items < screen width or already at right edge ── */}
+      {canScrollRight && (
+        <button
+          type="button"
+          onClick={() => centerCard("right")}
+          aria-label="Center next item"
+          className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full border border-[#e8c0c8] bg-white/90 backdrop-blur-md shadow-xl text-[#3d2b1f] flex items-center justify-center transition-all duration-300 focus:outline-none opacity-90 group-hover/carousel:opacity-100 hover:bg-[#c88389] hover:text-white hover:border-[#c88389] hover:scale-110 active:scale-95"
+        >
+          <FiChevronRight className="w-6 h-6" />
+        </button>
+      )}
     </div>
   );
 }

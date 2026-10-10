@@ -28,6 +28,7 @@ export interface ProductData {
   id?: string;
   name: string;
   subtitle: string;
+  collection?: string;
   rating: number;
   reviewCount: number;
   price: number | string;
@@ -41,6 +42,7 @@ export interface ProductData {
   sizes?: string[];
   features?: ProductFeature[];
   packageType?: string;
+  style: string; // Optional for existing products
 }
 
 export interface ProductPageProps {
@@ -246,7 +248,7 @@ export default function ProductPage({
 
   return (
     <main
-      className={`w-full min-h-[95vh] bg-[#fdfaf8] text-[#3d2b1f] flex justify-center items-center mt-28 px-4 sm:px-6 lg:px-12 py-10 md:py-16 ${className}`}
+      className={`w-full min-h-[95vh] bg-white text-[#3d2b1f] flex flex-col justify-start items-center px-4 sm:px-6 lg:px-12 pt-20 md:pt-28 pb-10 ${className}`}
       style={{
         fontFamily: 'var(--font-dm-sans, "DM Sans", sans-serif)',
       }}
@@ -255,6 +257,47 @@ export default function ProductPage({
         open={sizeChartModal}
         onClose={() => setSizeChartModal(false)}
       />
+
+      {/* ── BREADCRUMB NAVIGATION ── */}
+      <nav
+        aria-label="Breadcrumb"
+        className="w-[75%] mx-auto mb-5 flex items-center gap-1.5 text-[11px] sm:text-xs tracking-wide"
+        style={{ fontFamily: 'var(--font-dm-sans, "DM Sans", sans-serif)' }}
+      >
+        <a
+          href="/"
+          className="text-[#b07886] hover:text-[#8a4a5a] transition-colors duration-150 hover:underline underline-offset-2"
+        >
+          Home
+        </a>
+        <span className="text-[#d4a8b2] select-none">/</span>
+        <a
+          href="/collection"
+          className="text-[#b07886] hover:text-[#8a4a5a] transition-colors duration-150 hover:underline underline-offset-2"
+        >
+          Collection
+        </a>
+        {data.collection && (
+          <>
+            <span className="text-[#d4a8b2] select-none">/</span>
+            <a
+              href={`/collection?filter=${encodeURIComponent(data.collection)}`}
+              className="text-[#b07886] hover:text-[#8a4a5a] transition-colors duration-150 hover:underline underline-offset-2 capitalize"
+            >
+              {data.collection}
+            </a>
+          </>
+        )}
+        {data.name && (
+          <>
+            <span className="text-[#d4a8b2] select-none">/</span>
+            <span className="text-[#3d2b1f] font-medium truncate max-w-[160px] sm:max-w-xs">
+              {data.name}
+            </span>
+          </>
+        )}
+      </nav>
+
       <div className="w-[75%] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-start">
         {/* ═════════════════════════════════════════════════════════════
             LEFT COLUMN: MEDIA GALLERY (Thumbnails + Hero Image)
@@ -374,7 +417,7 @@ export default function ProductPage({
 
           {data.colors && data.colors.length > 0 && (
             <div className="space-y-2.5 pt-2">
-              <h2 className="text-xs font-extrabold tracking-[0.08em] uppercase text-[#a0604a]">
+              <h2 className="text-sm font-bold tracking-[0.02em] text-[#a0604a]">
                 Choose your Shade:{" "}
               </h2>
               <div className="flex items-center gap-4 pt-2">
@@ -388,10 +431,10 @@ export default function ProductPage({
                       type="button"
                       title={color.name || color.color}
                       onClick={() => setSelectedColor(colorVal)}
-                      className={`w-6 h-6 md:w-10 md:h-10 rounded-full border shadow-sm transition-all hover:scale-110 focus:outline-none ${
+                      className={`w-6 h-6 md:w-10 md:h-10 rounded-full border-2 shadow-sm transition-all focus:outline-none ${
                         isSelected
-                          ? "ring-2 ring-[#c88389] border-[#c25d65] scale-105"
-                          : "border-[#f08cca] hover:border-[#c88389]"
+                          ? "border-[#c25d65]"
+                          : "border-2 border-[#edd8de] hover:border-[#c88389]"
                       }`}
                       style={{ backgroundColor: color.color }}
                     />
@@ -411,8 +454,8 @@ export default function ProductPage({
           {/* ── 1. SHAPE SELECTOR ── */}
           {data.shapes && data.shapes.length > 0 && (
             <div className="space-y-2.5 pt-2">
-              <h2 className="text-xs font-extrabold tracking-[0.08em] uppercase text-[#a0604a]">
-                SHAPE
+              <h2 className="text-sm font-bold tracking-[0.02em] text-[#a0604a]">
+                Shape
               </h2>
               <div className="flex items-center gap-2.5 sm:gap-3.5 flex-wrap">
                 {data.shapes.map((shape) => {
@@ -422,23 +465,24 @@ export default function ProductPage({
                       key={shape.id}
                       type="button"
                       onClick={() => setSelectedShape(shape.id)}
-                      className={`flex flex-col items-center justify-between py-2 px-2.5 sm:px-3 min-w-[58px] sm:min-w-18 h-20 rounded-2xl border transition-all duration-200 focus:outline-none ${
+                      className={`group flex flex-col items-center justify-between py-2 px-2.5 sm:px-3 min-w-[58px] sm:min-w-18 h-20 rounded-2xl border-2 transition-all duration-200 focus:outline-none ${
                         isSelected
-                          ? "border-[#d88998] bg-[#faedf0] shadow-sm ring-1 ring-[#d88998]/40"
-                          : "border-[#edd8de] bg-white/60 hover:bg-white hover:border-[#dfa3b0]"
+                          ? "border-[#c87a8a] bg-[#c87a8a] shadow-md"
+                          : "border-[#edd8de] bg-white/60 hover:border-[#c87a8a] hover:bg-[#faedf0]"
                       }`}
                     >
                       <div className="h-10 flex items-center justify-center">
                         <NailShapeIcon
                           type={shape.shapeType}
                           isSelected={isSelected}
+                          selectedOnDark={isSelected}
                         />
                       </div>
                       <span
-                        className={`text-[11px] font-medium tracking-tight ${
+                        className={`text-[11px] font-medium tracking-tight transition-colors ${
                           isSelected
-                            ? "text-[#a0485a] font-semibold"
-                            : "text-[#7a6054]"
+                            ? "text-white"
+                            : "text-[#7a6054] group-hover:text-[#a0485a]"
                         }`}
                       >
                         {shape.name}
@@ -453,8 +497,8 @@ export default function ProductPage({
           {/* ── 2. LENGTH SELECTOR ── */}
           {data.lengths && data.lengths.length > 0 && (
             <div className="space-y-2.5 pt-1">
-              <h2 className="text-xs font-extrabold tracking-[0.08em] uppercase text-[#a0604a]">
-                LENGTH
+              <h2 className="text-sm font-bold tracking-[0.02em] text-[#a0604a]">
+                Length
               </h2>
               <div className="flex items-center gap-2 sm:gap-3">
                 {data.lengths.map((len) => {
@@ -464,10 +508,10 @@ export default function ProductPage({
                       key={len}
                       type="button"
                       onClick={() => setSelectedLength(len)}
-                      className={`px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 border focus:outline-none ${
+                      className={`px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 border-2 focus:outline-none ${
                         isSelected
-                          ? "border-[#d88998] bg-[#faedf0] text-[#a0485a] font-semibold shadow-xs"
-                          : "border-[#edd8de] bg-white/60 text-[#7a6054] hover:bg-white hover:border-[#dfa3b0]"
+                          ? "border-[#c87a8a] bg-[#c87a8a] text-white shadow-md"
+                          : "border-[#edd8de] bg-white/60 text-[#7a6054] hover:border-[#c87a8a] hover:text-[#a0485a] "
                       }`}
                     >
                       {len}
@@ -481,10 +525,33 @@ export default function ProductPage({
           {/* ── 3. SIZE SELECTOR ── */}
           {data.sizes && data.sizes.length > 0 && (
             <div className="space-y-2.5 pt-1">
-              <div className="flex items-center justify-between max-w-xs">
-                <h2 className="text-xs font-extrabold tracking-[0.08em] uppercase text-[#a0604a]">
-                  SIZE
+              <div className="flex items-center justify-between max-w-lg">
+                <h2 className="text-sm font-bold tracking-[0.02em] text-[#a0604a]">
+                  Size
                 </h2>
+                <div className="ml-auto">
+                  <button
+                    type="button"
+                    className="flex items-center gap-1 text-[11px] text-[#b07886] hover:text-[#904858] transition-colors underline-offset-2 hover:underline"
+                    onClick={() => {
+                      setSizeChartModal(!sizeChartModal);
+                    }}
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                      <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                    <span>Size Guide</span>
+                  </button>
+                </div>
               </div>
 
               <div className="flex items-center gap-2 sm:gap-3">
@@ -495,10 +562,10 @@ export default function ProductPage({
                       key={size}
                       type="button"
                       onClick={() => setSelectedSize(size)}
-                      className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-xs sm:text-sm font-medium transition-all duration-200 border focus:outline-none ${
+                      className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-xs sm:text-sm font-medium transition-all duration-200 border-2 focus:outline-none ${
                         isSelected
-                          ? "border-[#d88998] bg-[#faedf0] text-[#a0485a] font-semibold shadow-xs scale-105"
-                          : "border-[#edd8de] bg-white/60 text-[#7a6054] hover:bg-white hover:border-[#dfa3b0]"
+                          ? "border-[#c87a8a] bg-[#c87a8a] text-white shadow-md"
+                          : "border-[#edd8de] bg-white/60 text-[#7a6054] hover:border-[#c87a8a] hover:text-[#a0485a]"
                       }`}
                     >
                       {size === "Custom" ? (
@@ -521,29 +588,6 @@ export default function ProductPage({
                     </button>
                   );
                 })}
-              </div>
-              <div className="ml-1">
-                <button
-                  type="button"
-                  className="flex items-center gap-1 text-[11px] text-[#b07886] hover:text-[#904858] transition-colors underline-offset-2 hover:underline"
-                  onClick={() => {
-                    setSizeChartModal(!sizeChartModal);
-                  }}
-                >
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                    <line x1="12" y1="17" x2="12.01" y2="17" />
-                  </svg>
-                  <span>Size Guide</span>
-                </button>
               </div>
             </div>
           )}

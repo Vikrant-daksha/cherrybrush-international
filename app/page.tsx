@@ -21,6 +21,7 @@ interface ProductItem {
   _id: string;
   name: string;
   slug?: string;
+  subtitle?: string;
   description: string;
   price: number;
   collection: string;
@@ -46,6 +47,7 @@ async function getProducts(): Promise<ProductItem[]> {
       _id: doc._id.toString(),
       name: doc.name || "",
       slug: doc.slug || doc._id.toString(),
+      subtitle: doc.subtitle || "",
       description: doc.description || "",
       price: doc.price || 0,
       collection: doc.collection || "Press-On Nails",

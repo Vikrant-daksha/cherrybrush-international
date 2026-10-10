@@ -74,7 +74,8 @@ async function getProductBySlug(
       return {
         id: dbDoc._id.toString(),
         name: dbDoc.name,
-        subtitle: dbDoc.style || dbDoc.collection || "Press-On Nails",
+        subtitle: dbDoc.subtitle,
+        collection: dbDoc.collection || undefined,
         rating: dbDoc.rating || 5,
         reviewCount: dbDoc.reviewCount || 0,
         price: dbDoc.price,
@@ -89,6 +90,7 @@ async function getProductBySlug(
         lengths: validLengths.length > 0 ? validLengths : undefined,
         sizes: validSizes.length > 0 ? validSizes : undefined,
         packageType: dbDoc.packageType,
+        style: dbDoc.style,
       };
     }
   } catch (err) {

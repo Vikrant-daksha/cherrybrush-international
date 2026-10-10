@@ -22,10 +22,7 @@ interface ProductSuggestion {
   style?: string;
 }
 
-export default function Navbar({
-  brandName = "CHERRYBRUSH",
-  className = "",
-}: NavbarProps) {
+export default function Navbar({ className = "" }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -142,8 +139,8 @@ export default function Navbar({
     <header
       className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
         isScrolled
-          ? "bg-black/20 backdrop-blur-md border-b border-white/10 py-4 shadow-lg"
-          : "bg-[#d87c8e]/40 backdrop-blur-sm border-b border-white/10 py-5 md:py-6"
+          ? "bg-white/40 backdrop-blur-md border-b border-black/10 py-4 "
+          : "bg-[#fdf0f2]/10 border-b border-[#c25d65]/10 py-5 md:py-6"
       } ${className}`}
     >
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 flex items-center justify-between relative">
@@ -152,7 +149,7 @@ export default function Navbar({
           href="/"
           className="group flex items-center gap-2.5 focus:outline-none"
         >
-          <div className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden shadow-sm border border-white/20 transition-transform duration-300 group-hover:scale-105 flex-shrink-0">
+          <div className="relative w-8 h-8 sm:w-14 sm:h-14 rounded-xl overflow-hidden shadow-sm transition-transform duration-300 flex-shrink-0">
             <Image
               src="/logo.jpeg"
               alt="Cherrybrush Logo"
@@ -162,14 +159,12 @@ export default function Navbar({
             />
           </div>
           <span
-            className="text-xl sm:text-2xl font-normal tracking-[0.2em] text-white uppercase transition-transform duration-300 group-hover:scale-105"
+            className="text-xl sm:text-2xl font-normal tracking-[0.2em] text-[#c25d65]/60 uppercase transition-transform duration-300 group-hover:scale-105"
             style={{
               fontFamily:
                 'var(--font-cormorant, "Cormorant Garamond", Georgia, serif)',
             }}
-          >
-            {brandName}
-          </span>
+          ></span>
         </Link>
 
         {/* ── Desktop Navigation Links ── */}
@@ -183,13 +178,13 @@ export default function Navbar({
               <Link
                 key={link.label}
                 href={link.href}
-                className={`text-[11px] lg:text-xs font-semibold tracking-[0.2em] uppercase transition-all duration-200 hover:text-[#f8cad4] relative py-1  ${
-                  isActive ? "text-[#f8cad4] font-bold" : "text-white/95"
+                className={`text-[11px] lg:text-xs font-semibold tracking-[0.2em] uppercase transition-all duration-200 hover:text-[#c25d65] relative py-1  ${
+                  isActive ? "text-[#c25d65]" : "text-[#c25d65]/60"
                 }`}
               >
                 {link.label}
                 {isActive && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-[#f8cad4] rounded-full" />
+                  <span className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-[#c25d65] rounded-full" />
                 )}
               </Link>
             );
@@ -197,7 +192,7 @@ export default function Navbar({
         </nav>
 
         {/* ── Right Icons (Search, Account, Bag) ── */}
-        <div className="flex items-center gap-4 sm:gap-5 text-white relative">
+        <div className="flex items-center gap-4 sm:gap-5 text-[#c25d65]/60 relative">
           {/* ── Search Icon Button / Expandable Input ── */}
           <div className="relative">
             {!searchOpen ? (
@@ -205,7 +200,7 @@ export default function Navbar({
                 type="button"
                 onClick={() => setSearchOpen(true)}
                 aria-label="Open Search"
-                className="p-1.5 hover:text-[#f8cad4] transition-transform duration-200 hover:scale-110 focus:outline-none"
+                className="p-1.5 hover:text-[#c25d65] transition-transform duration-200 hover:scale-110 focus:outline-none"
               >
                 <FiSearch className="w-5 h-5" />
               </button>
@@ -304,7 +299,7 @@ export default function Navbar({
           <Link
             href="/admin/login"
             aria-label="Account"
-            className="p-1.5 hover:text-[#f8cad4] transition-transform duration-200 hover:scale-110 focus:outline-none"
+            className="p-1.5 hover:text-[#c25d65] transition-transform duration-200 hover:scale-110 focus:outline-none"
           >
             <svg
               width="20"
@@ -326,7 +321,7 @@ export default function Navbar({
             type="button"
             onClick={toggleCart}
             aria-label="Shopping Bag"
-            className="p-1.5 hover:text-[#f8cad4] transition-transform duration-200 hover:scale-110 focus:outline-none relative"
+            className="p-1.5 hover:text-[#c25d65] transition-transform duration-200 hover:scale-110 focus:outline-none relative"
           >
             <svg
               width="20"
@@ -343,7 +338,7 @@ export default function Navbar({
               <path d="M16 10a4 4 0 0 1-8 0" />
             </svg>
             {totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#c88389] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs animate-pulse">
+              <span className="absolute -top-1 -right-1 bg-[#c88389] text-[#c25d65]/60 text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs animate-pulse">
                 {totalItems}
               </span>
             )}
@@ -354,7 +349,7 @@ export default function Navbar({
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
-            className="md:hidden p-1.5 hover:text-[#f8cad4] focus:outline-none"
+            className="md:hidden p-1.5 hover:text-[#c25d65] focus:outline-none"
           >
             <svg
               width="22"
@@ -385,13 +380,13 @@ export default function Navbar({
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-neutral-900/95 backdrop-blur-xl border-b border-white/10 px-6 py-6 space-y-4 transition-all">
+        <div className="md:hidden bg-neutral-900  backdrop-blur-xl border-b border-white/10 px-6 py-6 space-y-4 transition-all">
           {navLinks.map((link) => (
             <Link
               key={link.label}
               href={link.href}
               onClick={() => setMobileMenuOpen(false)}
-              className="block text-xs font-semibold tracking-[0.2em] uppercase text-white hover:text-[#f8cad4] py-1.5 transition-colors"
+              className="block text-xs font-semibold tracking-[0.2em] uppercase text-[#c25d65]/60 hover:text-[#c25d65] py-1.5 transition-colors"
             >
               {link.label}
             </Link>

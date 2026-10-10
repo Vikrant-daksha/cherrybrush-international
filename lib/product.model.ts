@@ -8,6 +8,7 @@ export interface IColorSwatch {
 export interface IProduct {
   name: string;
   slug: string;
+  subtitle?: string; // Short description / subtitle (max 150 characters)
   description: string;
   price: number;
   collection: string;
@@ -48,6 +49,11 @@ const ProductSchema = new Schema<IProduct>(
       lowercase: true,
       trim: true,
       index: true,
+    },
+    subtitle: {
+      type: String,
+      maxlength: [150, "Subtitle cannot exceed 150 characters"],
+      trim: true,
     },
     description: {
       type: String,
@@ -131,7 +137,8 @@ if (
   mongoose.models.Product &&
   (!mongoose.models.Product.schema.paths.isHero ||
     !mongoose.models.Product.schema.paths.isFeatured ||
-    !mongoose.models.Product.schema.paths.packageType)
+    !mongoose.models.Product.schema.paths.packageType ||
+    !mongoose.models.Product.schema.paths.subtitle)
 ) {
   delete (mongoose.models as any).Product;
 }

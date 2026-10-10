@@ -5,6 +5,8 @@ export interface NailShapeIconProps {
   type: string;
   /** Whether this shape is currently selected — affects stroke & fill color */
   isSelected?: boolean;
+  /** When true, renders white strokes (for use on solid-fill dark buttons) */
+  selectedOnDark?: boolean;
   /** Override width (default 22) */
   width?: number;
   /** Override height (default 34) */
@@ -16,12 +18,21 @@ export interface NailShapeIconProps {
 export default function NailShapeIcon({
   type,
   isSelected = false,
+  selectedOnDark = false,
   width = 22,
   height = 34,
   stroke,
 }: NailShapeIconProps) {
-  const strokeColor = isSelected ? "#c87a8a" : "#b0967c";
-  const fillColor = isSelected ? "rgba(200, 122, 138, 0.12)" : "transparent";
+  const strokeColor = selectedOnDark
+    ? "rgba(255,255,255,0.9)"
+    : isSelected
+    ? "#c87a8a"
+    : "#b0967c";
+  const fillColor = selectedOnDark
+    ? "rgba(255,255,255,0.18)"
+    : isSelected
+    ? "rgba(200, 122, 138, 0.12)"
+    : "transparent";
 
   const commonProps = {
     width,

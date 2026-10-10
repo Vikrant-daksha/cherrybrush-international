@@ -108,7 +108,8 @@ export default function VerticalProductCard({
 
   // Filter incoming variants to avoid ghost or empty strings
   const validColors = (colors || []).filter(
-    (c) => c && (c.hex?.trim?.() || c.label?.trim?.() || (c as any).color?.trim?.()),
+    (c) =>
+      c && (c.hex?.trim?.() || c.label?.trim?.() || (c as any).color?.trim?.()),
   );
   const availableShapes = (shapes || []).filter(
     (s) => typeof s === "string" && s.trim().length > 0,
@@ -248,7 +249,7 @@ export default function VerticalProductCard({
 
             <div className="text-[12px] my-3 line-clamp-2">{description}</div>
 
-            {validColors.length > 0 && (
+            {/* {validColors.length > 0 && (
               <>
                 <div className="uppercase text-[10px] tracking-widest font-semibold text-[#d4747c]">
                   Shades{" "}
@@ -286,7 +287,7 @@ export default function VerticalProductCard({
                   </div>
                 </div>
               </>
-            )}
+            )} */}
           </div>
 
           {/* Price */}
@@ -312,216 +313,227 @@ export default function VerticalProductCard({
       </div>
 
       {/* ══════════════════════════════════════════════
-         ADD TO CART POPUP OVERLAY MODAL (PORTAL TO DOCUMENT.BODY)
+         ADD TO CART QUICK-VIEW OVERLAY (PORTAL TO DOCUMENT.BODY)
       ══════════════════════════════════════════════ */}
       {isModalOpen &&
         mounted &&
         createPortal(
           <div
-            className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+            className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200"
             onClick={(e) => {
               e.stopPropagation();
               setIsModalOpen(false);
             }}
           >
             <div
-              className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 md:p-8 max-h-[90vh] overflow-y-auto relative animate-in zoom-in-95 duration-200"
+              className="bg-white w-full sm:max-w-4xl sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-300 max-h-[92vh] flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Close Button */}
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-600 flex items-center justify-center transition-colors"
-              >
-                <FaXmark className="w-5 h-5" />
-              </button>
-
-              {/* Modal Title & Product Summary */}
-              <div className="flex items-center gap-4 border-b border-neutral-100 pb-4 mb-5">
-                <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-[#fdf0f2] flex-shrink-0 border border-[#f0c5d2]">
+              <div className="flex flex-col sm:flex-row flex-1 overflow-hidden min-h-0">
+                {/* ── Left: Large Product Image ── */}
+                <div className="relative w-full sm:w-[50%] aspect-[4/3] sm:aspect-auto flex-shrink-0 bg-[#fdf0f2]">
                   <Image
                     src={imageSrc}
                     alt={name}
                     fill
                     className="object-cover"
+                    sizes="(max-width: 640px) 100vw, 280px"
                   />
+                  {badge && (
+                    <span className="absolute top-3 left-3 text-[9px] font-bold uppercase tracking-widest bg-[#c87a8a] text-white px-2.5 py-1 rounded-full shadow">
+                      {badge}
+                    </span>
+                  )}
                 </div>
-                <div>
-                  <p className="font-sans text-[10px] font-semibold tracking-widest uppercase text-[#c88389]">
-                    {collection}
-                  </p>
-                  <h3 className="font-serif text-lg font-normal text-[#3d2b1f] uppercase leading-tight line-clamp-1">
-                    {name}
-                  </h3>
-                  <p className="font-serif text-lg font-semibold text-[#3d2b1f] mt-0.5">
-                    {price}
-                  </p>
+
+                {/* ── Right: Details & Selectors ── */}
+                <div className="flex-1 overflow-y-auto px-5 pt-5 pb-6 sm:px-7 sm:pt-7 sm:pb-7 flex flex-col gap-5 relative">
+                  {/* Close */}
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#fdf0f2] hover:bg-[#f5d5dc] text-[#c87a8a] flex items-center justify-center transition-colors z-10"
+                  >
+                    <FaXmark className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Collection · Name · Rating · Price */}
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-[#c88389] mb-1">
+                      {collection}
+                    </p>
+                    <h3
+                      className="font-serif text-xl sm:text-2xl font-normal text-[#3d2b1f] uppercase leading-snug pr-10 line-clamp-2"
+                      style={{
+                        fontFamily:
+                          'var(--font-cormorant, "Cormorant Garamond", serif)',
+                      }}
+                    >
+                      {name}
+                    </h3>
+                    {reviewCount > 0 && (
+                      <div className="flex items-center gap-1.5 mt-1.5">
+                        <StarRating rating={rating} />
+                        <span className="text-[11px] text-[#8a7060]">
+                          {rating.toFixed(1)} ({reviewCount})
+                        </span>
+                      </div>
+                    )}
+                    <p
+                      className="font-serif text-2xl font-normal text-[#3d2b1f] mt-2"
+                      style={{
+                        fontFamily:
+                          'var(--font-cormorant, "Cormorant Garamond", serif)',
+                      }}
+                    >
+                      {price}
+                    </p>
+                  </div>
+
+                  {/* ── Selectors ── */}
+                  <div className="space-y-4 flex-1">
+                    {availableShapes.length > 0 && (
+                      <div>
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-[#a0604a] mb-2">
+                          Shape
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {availableShapes.map((shape) => {
+                            const isSelected = popupShape === shape;
+                            return (
+                              <button
+                                key={shape}
+                                type="button"
+                                onClick={() =>
+                                  setPopupShape(isSelected ? "" : shape)
+                                }
+                                className={`px-3.5 py-1.5 rounded-xl text-xs font-medium border-2 transition-all duration-150 ${
+                                  isSelected
+                                    ? "bg-[#c87a8a] border-[#c87a8a] text-white shadow-sm"
+                                    : "bg-white border-[#edd8de] text-[#7a6054] hover:border-[#c87a8a] hover:text-[#a0485a]"
+                                }`}
+                              >
+                                {shape}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {availableLengths.length > 0 && (
+                      <div>
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-[#a0604a] mb-2">
+                          Length
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {availableLengths.map((len) => {
+                            const isSelected = popupLength === len;
+                            return (
+                              <button
+                                key={len}
+                                type="button"
+                                onClick={() =>
+                                  setPopupLength(isSelected ? "" : len)
+                                }
+                                className={`px-3.5 py-1.5 rounded-xl text-xs font-medium border-2 transition-all duration-150 ${
+                                  isSelected
+                                    ? "bg-[#c87a8a] border-[#c87a8a] text-white shadow-sm"
+                                    : "bg-white border-[#edd8de] text-[#7a6054] hover:border-[#c87a8a] hover:text-[#a0485a]"
+                                }`}
+                              >
+                                {len}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {availableSizes.length > 0 && (
+                      <div>
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-[#a0604a] mb-2">
+                          Size
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {availableSizes.map((sz) => {
+                            const isSelected = popupSize === sz;
+                            return (
+                              <button
+                                key={sz}
+                                type="button"
+                                onClick={() =>
+                                  setPopupSize(isSelected ? "" : sz)
+                                }
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-medium border-2 transition-all duration-150 ${
+                                  isSelected
+                                    ? "bg-[#c87a8a] border-[#c87a8a] text-white shadow-sm"
+                                    : "bg-white border-[#edd8de] text-[#7a6054] hover:border-[#c87a8a] hover:text-[#a0485a]"
+                                }`}
+                              >
+                                {sz}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {validColors.length > 0 && (
+                      <div>
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-[#a0604a] mb-2">
+                          Shade
+                          {popupShade && (
+                            <span className="normal-case font-normal text-[#3d2b1f] ml-1">
+                              — {popupShade}
+                            </span>
+                          )}
+                        </p>
+                        <div className="flex items-center gap-2.5">
+                          {validColors.map((color, i) => {
+                            const colorKey = color.label || color.hex;
+                            const isSelected = popupShade === colorKey;
+                            return (
+                              <button
+                                key={i}
+                                type="button"
+                                title={color.label || color.hex}
+                                onClick={() => setPopupShade(colorKey)}
+                                className={`w-7 h-7 rounded-full border-2 shadow-sm transition-all hover:scale-110 ${
+                                  isSelected
+                                    ? "border-[#c25d65] ring-2 ring-[#c88389]/50 scale-110"
+                                    : "border-[#edd8de] hover:border-[#c88389]"
+                                }`}
+                                style={{ backgroundColor: color.hex }}
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ── CTA ── */}
+                  <div className="space-y-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={handleConfirmAddToCart}
+                      className="w-full py-3.5 rounded-xl bg-[#c87a8a] hover:bg-[#b56878] active:scale-[0.98] text-white font-semibold text-sm uppercase tracking-wider shadow-[0_6px_20px_rgba(200,122,138,0.35)] hover:shadow-[0_8px_28px_rgba(200,122,138,0.45)] transition-all duration-200 flex items-center justify-center gap-2"
+                    >
+                      <FaCartShopping className="w-4 h-4" />
+                      Add to Cart
+                    </button>
+                    {href && (
+                      <Link
+                        href={href}
+                        className="block text-center text-[12px] text-[#8a7060] hover:text-[#3d2b1f] underline-offset-2 hover:underline transition-colors"
+                        onClick={() => setIsModalOpen(false)}
+                      >
+                        View full details →
+                      </Link>
+                    )}
+                  </div>
                 </div>
-              </div>
-
-              {/* Option Selection Form */}
-              <div className="space-y-5">
-                {/* ── 1. Shape Selection ── */}
-                {availableShapes.length > 0 && (
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#a0604a] mb-2">
-                      Select Shape{" "}
-                      {!popupShape && (
-                        <span className="text-[#c88389] font-normal lowercase">
-                          (optional)
-                        </span>
-                      )}
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {availableShapes.map((shape) => {
-                        const isSelected = popupShape === shape;
-                        return (
-                          <button
-                            key={shape}
-                            type="button"
-                            onClick={() => setPopupShape(isSelected ? "" : shape)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                              isSelected
-                                ? "bg-[#c88389] text-white border-[#c88389] shadow-sm"
-                                : "bg-neutral-50 text-neutral-700 border-neutral-200 hover:border-[#c88389]"
-                            }`}
-                          >
-                            {shape}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* ── 2. Length Selection ── */}
-                {availableLengths.length > 0 && (
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#a0604a] mb-2">
-                      Select Length{" "}
-                      {!popupLength && (
-                        <span className="text-[#c88389] font-normal lowercase">
-                          (optional)
-                        </span>
-                      )}
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {availableLengths.map((len) => {
-                        const isSelected = popupLength === len;
-                        return (
-                          <button
-                            key={len}
-                            type="button"
-                            onClick={() => setPopupLength(isSelected ? "" : len)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                              isSelected
-                                ? "bg-[#c88389] text-white border-[#c88389] shadow-sm"
-                                : "bg-neutral-50 text-neutral-700 border-neutral-200 hover:border-[#c88389]"
-                            }`}
-                          >
-                            {len}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* ── 3. Size Selection ── */}
-                {availableSizes.length > 0 && (
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#a0604a] mb-2">
-                      Select Size{" "}
-                      {!popupSize && (
-                        <span className="text-[#c88389] font-normal lowercase">
-                          (optional)
-                        </span>
-                      )}
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {availableSizes.map((sz) => {
-                        const isSelected = popupSize === sz;
-                        return (
-                          <button
-                            key={sz}
-                            type="button"
-                            onClick={() => setPopupSize(isSelected ? "" : sz)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                              isSelected
-                                ? "bg-[#c88389] text-white border-[#c88389] shadow-sm"
-                                : "bg-neutral-50 text-neutral-700 border-neutral-200 hover:border-[#c88389]"
-                            }`}
-                          >
-                            {sz}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* ── 4. Shade Selection ── */}
-                {validColors.length > 0 && (
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#a0604a] mb-2">
-                      Select Shade:{" "}
-                      <span className="text-[#3d2b1f] font-normal">
-                        {popupShade}
-                      </span>
-                    </label>
-                    <div className="flex items-center gap-3">
-                      {validColors.map((color, i) => {
-                        const colorKey = color.label || color.hex;
-                        const isSelected = popupShade === colorKey;
-                        return (
-                          <button
-                            key={i}
-                            type="button"
-                            title={color.label || color.hex}
-                            onClick={() => setPopupShade(colorKey)}
-                            className={`w-8 h-8 rounded-full border shadow-sm transition-all hover:scale-110 ${
-                              isSelected
-                                ? "ring-2 ring-[#c88389] border-[#c25d65] scale-110"
-                                : "border-[#eeb9c9] hover:border-[#c88389]"
-                            }`}
-                            style={{ backgroundColor: color.hex }}
-                          />
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {packageType && packageType !== "" && (
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#a0604a] mb-2">
-                      Select Package Type:{" "}
-                      <span className="text-[#3d2b1f] font-normal">
-                        {packageType}
-                      </span>
-                    </label>
-                  </div>
-                )}
-              </div>
-
-              {/* ── 2 Bottom CTA Buttons: Cancel & Add ── */}
-              <div className="flex items-center gap-3 mt-8 pt-4 border-t border-neutral-100">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-3.5 rounded-xl border border-neutral-200 text-neutral-700 hover:bg-neutral-100 font-semibold text-sm transition-all active:scale-98"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmAddToCart}
-                  className="flex-1 py-3.5 rounded-xl bg-[#c88389] hover:bg-[#b57379] text-white font-semibold text-sm shadow-md transition-all active:scale-98 flex items-center justify-center gap-2"
-                >
-                  <FaCartShopping className="w-4 h-4" />
-                  Add to Cart
-                </button>
               </div>
             </div>
           </div>,

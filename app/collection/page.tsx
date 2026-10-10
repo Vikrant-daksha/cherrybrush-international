@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import React, { useState, useEffect, useMemo, useCallback, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import VerticalProductCard from "@/components/verticalProductCard/verticalProductCard";
 import { FiSearch, FiChevronLeft, FiChevronRight, FiX } from "react-icons/fi";
 import Navbar from "@/components/Navbar/Navbar";
@@ -30,13 +30,15 @@ const ITEMS_PER_PAGE = 20; // 5 columns x 4 rows
 
 function CollectionContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const initialQuery = searchParams.get("q") || "";
+  const initialFilter = searchParams.get("filter") || "All";
 
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState(initialQuery);
   const [searchQuery, setSearchQuery] = useState(initialQuery);
-  const [selectedCollection, setSelectedCollection] = useState("All");
+  const [selectedCollection, setSelectedCollection] = useState(initialFilter);
   const [currentPage, setCurrentPage] = useState(1);
 
   // Sync URL search query if it changes
@@ -46,6 +48,27 @@ function CollectionContent() {
       setSearchQuery(initialQuery);
     }
   }, [initialQuery]);
+
+  // Sync collection filter from URL param
+  useEffect(() => {
+    setSelectedCollection(searchParams.get("filter") || "All");
+  }, [searchParams]);
+
+  // Handler: update both state and URL
+  const handleCollectionChange = useCallback(
+    (col: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (col === "All") {
+        params.delete("filter");
+      } else {
+        params.set("filter", col);
+      }
+      // Reset page param if present
+      params.delete("page");
+      router.push(`/collection?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router],
+  );
 
   // 400ms Debounce Effect on Search Input
   useEffect(() => {
@@ -172,7 +195,7 @@ function CollectionContent() {
               return (
                 <button
                   key={col}
-                  onClick={() => setSelectedCollection(col)}
+                  onClick={() => handleCollectionChange(col)}
                   className={`px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all flex-shrink-0 ${
                     isActive
                       ? "bg-[#c88389] text-white shadow-md"

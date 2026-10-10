@@ -29,15 +29,19 @@ export default function MarqueeCarousel({
   const animFrameIdRef = useRef<number | null>(null);
 
   const childrenArray = React.Children.toArray(children);
+  const shouldAutoScroll = childrenArray.length > 3;
 
   // Update target speed smoothly on hover state changes
   useEffect(() => {
+    if (!shouldAutoScroll) return;
     if (!targetPosRef.current && !isCentering) {
       targetSpeedRef.current = isHovered ? 0 : speed;
     }
-  }, [isHovered, speed, isCentering]);
+  }, [isHovered, speed, isCentering, shouldAutoScroll]);
 
   useEffect(() => {
+    if (!shouldAutoScroll) return;
+
     const track = trackRef.current;
     if (!track) return;
 
@@ -100,24 +104,33 @@ export default function MarqueeCarousel({
         clearTimeout(holdTimerRef.current);
       }
     };
-  }, [speed, isHovered]);
+  }, [speed, isHovered, shouldAutoScroll]);
 
-  // Gently slide next/previous element to center (infinite end-to-end)
-  const centerNextCard = (direction: "left" | "right") => {
-    const track = trackRef.current;
-    if (!track || !track.children || track.children.length === 0) return;
+  // Handle previous/next navigation
+  const handleNav = (direction: "left" | "right") => {
+    if (shouldAutoScroll) {
+      const track = trackRef.current;
+      if (!track || !track.children || track.children.length === 0) return;
 
-    const firstItem = track.children[0] as HTMLElement;
-    if (!firstItem) return;
+      const firstItem = track.children[0] as HTMLElement;
+      if (!firstItem) return;
 
-    const itemWidth = firstItem.offsetWidth + 24; // Width + 24px flex gap
-    const currentCardIndex = Math.round(scrollPosRef.current / itemWidth);
+      const itemWidth = firstItem.offsetWidth + 24; // Width + 24px flex gap
+      const currentCardIndex = Math.round(scrollPosRef.current / itemWidth);
 
-    const nextIndex =
-      direction === "right" ? currentCardIndex + 1 : currentCardIndex - 1;
+      const nextIndex =
+        direction === "right" ? currentCardIndex + 1 : currentCardIndex - 1;
 
-    setIsCentering(true);
-    targetPosRef.current = nextIndex * itemWidth;
+      setIsCentering(true);
+      targetPosRef.current = nextIndex * itemWidth;
+    } else if (containerRef.current) {
+      const firstChild = trackRef.current?.children[0] as HTMLElement | undefined;
+      const step = firstChild ? firstChild.offsetWidth + 24 : 400;
+      containerRef.current.scrollBy({
+        left: direction === "right" ? step : -step,
+        behavior: "smooth",
+      });
+    }
   };
 
   return (
@@ -125,41 +138,57 @@ export default function MarqueeCarousel({
       ref={containerRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`relative group/marquee w-full overflow-hidden py-2 ${className}`}
+      className={`relative group/marquee w-full ${
+        shouldAutoScroll ? "overflow-hidden" : "overflow-x-auto scrollbar-none"
+      } py-2 ${className}`}
+      style={
+        !shouldAutoScroll
+          ? { scrollbarWidth: "none", msOverflowStyle: "none" }
+          : undefined
+      }
     >
-      {/* ── Left Arrow: Gently slide left card to center ── */}
-      <button
-        type="button"
-        onClick={() => centerNextCard("left")}
-        aria-label="Center previous item"
-        className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full border border-[#e8c0c8] bg-white/90 backdrop-blur-md shadow-xl text-[#3d2b1f] flex items-center justify-center transition-all duration-300 focus:outline-none opacity-90 group-hover/marquee:opacity-100 hover:bg-[#c88389] hover:text-white hover:border-[#c88389] hover:scale-110 active:scale-95"
-      >
-        <FiChevronLeft className="w-6 h-6" />
-      </button>
+      {/* ── Left Arrow: Only when there's more than 1 item ── */}
+      {childrenArray.length > 1 && (
+        <button
+          type="button"
+          onClick={() => handleNav("left")}
+          aria-label="Previous item"
+          className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full border border-[#e8c0c8] bg-white/90 backdrop-blur-md shadow-xl text-[#3d2b1f] flex items-center justify-center transition-all duration-300 focus:outline-none opacity-90 group-hover/marquee:opacity-100 hover:bg-[#c88389] hover:text-white hover:border-[#c88389] hover:scale-110 active:scale-95"
+        >
+          <FiChevronLeft className="w-6 h-6" />
+        </button>
+      )}
 
-      {/* ── Internal 2x Duplicated Track for Seamless Infinite Looping ── */}
+      {/* ── Track: Duplicated only when auto-scrolling with > 3 items ── */}
       <div
         ref={trackRef}
-        className="flex gap-6 w-max will-change-transform"
-        style={{ transform: "translate3d(0, 0, 0)" }}
+        className={`flex gap-6 ${
+          shouldAutoScroll
+            ? "w-max will-change-transform"
+            : "w-max min-w-full justify-start"
+        }`}
+        style={shouldAutoScroll ? { transform: "translate3d(0, 0, 0)" } : undefined}
       >
         {childrenArray.map((child, idx) => (
           <React.Fragment key={`set1-${idx}`}>{child}</React.Fragment>
         ))}
-        {childrenArray.map((child, idx) => (
-          <React.Fragment key={`set2-${idx}`}>{child}</React.Fragment>
-        ))}
+        {shouldAutoScroll &&
+          childrenArray.map((child, idx) => (
+            <React.Fragment key={`set2-${idx}`}>{child}</React.Fragment>
+          ))}
       </div>
 
-      {/* ── Right Arrow: Gently slide right card to center ── */}
-      <button
-        type="button"
-        onClick={() => centerNextCard("right")}
-        aria-label="Center next item"
-        className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full border border-[#e8c0c8] bg-white/90 backdrop-blur-md shadow-xl text-[#3d2b1f] flex items-center justify-center transition-all duration-300 focus:outline-none opacity-90 group-hover/marquee:opacity-100 hover:bg-[#c88389] hover:text-white hover:border-[#c88389] hover:scale-110 active:scale-95"
-      >
-        <FiChevronRight className="w-6 h-6" />
-      </button>
+      {/* ── Right Arrow: Only when there's more than 1 item ── */}
+      {childrenArray.length > 1 && (
+        <button
+          type="button"
+          onClick={() => handleNav("right")}
+          aria-label="Next item"
+          className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full border border-[#e8c0c8] bg-white/90 backdrop-blur-md shadow-xl text-[#3d2b1f] flex items-center justify-center transition-all duration-300 focus:outline-none opacity-90 group-hover/marquee:opacity-100 hover:bg-[#c88389] hover:text-white hover:border-[#c88389] hover:scale-110 active:scale-95"
+        >
+          <FiChevronRight className="w-6 h-6" />
+        </button>
+      )}
     </div>
   );
 }

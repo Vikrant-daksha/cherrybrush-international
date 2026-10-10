@@ -46,59 +46,7 @@ export default function FAQ() {
   return (
     <section className="w-full bg-[#fafaf7] select-none">
       <div className="w-full flex flex-col gap-24">
-        {/* ── PART 1: WHY PRESS-ONS COMPARISON BLOCK ── */}
-        <div className="flex flex-col lg:flex-row items-center bg-[#fafaf7] py-20 overflow-hidden border-t border-t-[#6b4f3a]/15 shadow-[0_4px_24px_rgba(107,79,58,0.03)]">
-          {/* Left image with elegant curve matching the visual design */}
-          <div className="w-full lg:w-2/5 h-[350px] lg:h-[480px] relative overflow-hidden shrink-0">
-            <Image
-              src="/sample_processed.png"
-              alt="Elegant Hand with CherryBrush Nails"
-              unoptimized
-              fill
-              sizes="(max-width: 1024px) 100vw, 40vw"
-              className="object-cover object-left-top"
-            />
-            {/* Soft pink overlay gradient */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#fafaf7]/10" />
-          </div>
-
-          {/* Right Comparison Grid */}
-          <div className="w-full lg:w-3/5 p-8 md:p-14 flex flex-col justify-center">
-            <h2 className="font-serif text-3xl md:text-4xl text-[#3d2b1f] tracking-widest uppercase mb-12 text-center lg:text-left">
-              Why Press-Ons?
-            </h2>
-            <div className="grid grid-cols-3 justify-center items-center text-xs sm:text-sm font-monstrat tracking-[0.10rem]">
-              <div className="">
-                <div className="text-xl mb-6">Our Press Ons</div>
-                <div className="mb-3">Salon quality</div>
-                <div className="mb-3">Reusable</div>
-                <div className="mb-3">Gentle on nails</div>
-                <div className="mb-3">Affordable</div>
-                <div className="mb-3">Apply in minutes</div>
-              </div>
-              <div className="self-stretch relative flex items-center justify-center">
-                {/* Full-height vertical line touching top and bottom */}
-                <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[1px] bg-[#f0c5d2]" />
-
-                {/* Soft pastel VS badge */}
-                <div className="relative z-10 w-11 h-11 md:w-12 md:h-12 rounded-full bg-[#fae4e8] border border-[#f0c5d2]/60 flex items-center justify-center font-serif italic text-xs md:text-sm tracking-wider text-[#a85a6a] shadow-sm">
-                  vs.
-                </div>
-              </div>
-              <div>
-                <div className="text-xl mb-6">Other</div>
-                <div className="mb-3">Expensive</div>
-                <div className="mb-3">Time consuming</div>
-                <div className="mb-3">Can damage nails</div>
-                <div className="mb-3">High maintenance</div>
-                <div className="mb-3">Hours at the salon</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── PART 2: FAQ DROPDOWN ACCORDIONS ── */}
-        <div className="max-w-3xl mx-auto w-full">
+        <div className="max-w-3xl mx-auto mt-10 w-full">
           <div className="text-center mb-12">
             <p className="font-sans text-[10px] tracking-[0.2em] uppercase text-[#c88389] font-semibold mb-2">
               Got Questions?
@@ -156,6 +104,55 @@ export default function FAQ() {
                 </div>
               );
             })}
+          </div>
+        </div>
+        <div className="flex flex-col lg:flex-row items-center bg-[#fafaf7] py-20 overflow-hidden border-t border-t-[#6b4f3a]/15 shadow-[0_4px_24px_rgba(107,79,58,0.03)]">
+          {/* Left image with elegant curve matching the visual design */}
+          <div className="w-full lg:w-2/5 h-[350px] lg:h-[480px] relative overflow-hidden shrink-0">
+            <Image
+              src="/sample_processed.png"
+              alt="Elegant Hand with CherryBrush Nails"
+              unoptimized
+              fill
+              sizes="(max-width: 1024px) 100vw, 40vw"
+              className="object-cover object-left-top"
+            />
+            {/* Soft pink overlay gradient */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#fafaf7]/10" />
+          </div>
+
+          {/* Right Comparison Grid */}
+          <div className="w-full lg:w-3/5 p-8 md:p-14 flex flex-col justify-center">
+            <h2 className="font-serif text-3xl md:text-4xl text-[#3d2b1f] tracking-widest uppercase mb-12 text-center lg:text-left">
+              Why Press-Ons?
+            </h2>
+            <div className="grid grid-cols-3 justify-center items-center text-xs sm:text-sm font-monstrat tracking-[0.10rem]">
+              <div className="">
+                <div className="text-xl mb-6">Our Press Ons</div>
+                <div className="mb-3">Salon quality</div>
+                <div className="mb-3">Reusable</div>
+                <div className="mb-3">Gentle on nails</div>
+                <div className="mb-3">Affordable</div>
+                <div className="mb-3">Apply in minutes</div>
+              </div>
+              <div className="self-stretch relative flex items-center justify-center">
+                {/* Full-height vertical line touching top and bottom */}
+                <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[1px] bg-[#f0c5d2]" />
+
+                {/* Soft pastel VS badge */}
+                <div className="relative z-10 w-11 h-11 md:w-12 md:h-12 rounded-full bg-[#fae4e8] border border-[#f0c5d2]/60 flex items-center justify-center font-serif italic text-xs md:text-sm tracking-wider text-[#a85a6a] shadow-sm">
+                  vs.
+                </div>
+              </div>
+              <div>
+                <div className="text-xl mb-6">Other</div>
+                <div className="mb-3">Expensive</div>
+                <div className="mb-3">Time consuming</div>
+                <div className="mb-3">Can damage nails</div>
+                <div className="mb-3">High maintenance</div>
+                <div className="mb-3">Hours at the salon</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

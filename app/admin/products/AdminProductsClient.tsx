@@ -84,6 +84,7 @@ export default function AdminProductsClient({
     const q = searchQuery.toLowerCase();
     return (
       (p.name && p.name.toLowerCase().includes(q)) ||
+      (p.subtitle && p.subtitle.toLowerCase().includes(q)) ||
       (p.collection && p.collection.toLowerCase().includes(q)) ||
       (p.style && p.style.toLowerCase().includes(q)) ||
       (p.badge && p.badge.toLowerCase().includes(q))
@@ -308,6 +309,11 @@ export default function AdminProductsClient({
                                 <p className="font-bold text-[#3d2b1f] line-clamp-1">
                                   {p.name}
                                 </p>
+                                {p.subtitle && (
+                                  <p className="text-[11px] text-[#8a7060] line-clamp-1 italic max-w-xs">
+                                    {p.subtitle}
+                                  </p>
+                                )}
                                 <p className="text-[10px] text-[#6b4f3a]/60 font-mono">
                                   /collection/{p.slug || p._id}
                                 </p>

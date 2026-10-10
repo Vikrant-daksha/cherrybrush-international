@@ -55,6 +55,7 @@ export default function CreateProductForm({
   const [style, setStyle] = useState("");
   const [badge, setBadge] = useState("");
   const [price, setPrice] = useState<number | "">("");
+  const [subtitle, setSubtitle] = useState("");
   const [description, setDescription] = useState("");
 
   // Deferred Images State (Local File previews + Direct URLs)
@@ -104,6 +105,12 @@ export default function CreateProductForm({
       setStyle(editingProduct.style || "");
       setBadge(editingProduct.badge || "");
       setPrice(editingProduct.price ?? "");
+      setSubtitle(
+        editingProduct.subtitle ||
+          editingProduct.subTitle ||
+          editingProduct.shortDescription ||
+          "",
+      );
       setDescription(editingProduct.description || "");
       setColors(editingProduct.colors || []);
       setSizes(editingProduct.sizes || []);
@@ -303,6 +310,7 @@ export default function CreateProductForm({
         style: style.trim() || undefined,
         badge: badge.trim() || undefined,
         price: Number(price),
+        subtitle: subtitle.trim() || undefined,
         description,
         images: finalImageUrls.filter(Boolean),
         colors,
@@ -350,6 +358,7 @@ export default function CreateProductForm({
     setStyle("");
     setBadge("");
     setPrice("");
+    setSubtitle("");
     setDescription("");
     setImages([]);
     setColors([]);
@@ -810,6 +819,36 @@ export default function CreateProductForm({
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[#e8c0c8] text-sm bg-white text-[#3d2b1f] focus:ring-2 focus:ring-[#c88389]/30 focus:border-[#c88389] outline-none"
                 />
               </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-[#3d2b1f]">
+                  Subtitle / Short Description
+                </label>
+                <span
+                  className={`text-[10px] font-semibold ${
+                    subtitle.length >= 140
+                      ? subtitle.length > 150
+                        ? "text-red-600"
+                        : "text-amber-600"
+                      : "text-[#6b4f3a]/60"
+                  }`}
+                >
+                  {subtitle.length}/150
+                </span>
+              </div>
+              <input
+                type="text"
+                maxLength={150}
+                value={subtitle}
+                onChange={(e) => setSubtitle(e.target.value.slice(0, 150))}
+                placeholder="e.g. Handcrafted french ombre with glossy pearlescent shimmer"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#e8c0c8] text-sm bg-white text-[#3d2b1f] focus:ring-2 focus:ring-[#c88389]/30 focus:border-[#c88389] outline-none transition-all"
+              />
+              <p className="text-[10px] text-[#6b4f3a]/60 mt-1">
+                Catchy one-liner displayed on product pages, quick overlays, and cards (max 150 characters).
+              </p>
             </div>
 
             <div>

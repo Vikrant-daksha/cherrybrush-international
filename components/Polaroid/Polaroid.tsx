@@ -34,7 +34,8 @@ export default function Polaroid({
     soft: "shadow-md hover:shadow-lg",
     medium: "shadow-xl hover:shadow-2xl",
     hard: "shadow-2xl hover:shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)]",
-    floating: "shadow-[0_20px_50px_rgba(0,0,0,0.15)] hover:shadow-[0_30px_60px_rgba(0,0,0,0.25)]",
+    floating:
+      "shadow-[0_20px_50px_rgba(0,0,0,0.15)] hover:shadow-[0_30px_60px_rgba(0,0,0,0.25)]",
   }[shadow];
 
   return (
@@ -59,7 +60,7 @@ export default function Polaroid({
               loading="eager"
               priority
               sizes="(max-width: 768px) 100vw, 25vw"
-              className="object-contain transition-transform duration-500 hover:scale-105"
+              className="object-cover object-center transition-transform duration-500"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-neutral-400 text-sm italic">
@@ -80,4 +81,3 @@ export default function Polaroid({
     </div>
   );
 }
-

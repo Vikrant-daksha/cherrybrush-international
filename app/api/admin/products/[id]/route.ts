@@ -53,6 +53,17 @@ export async function PATCH(
     await connectDB();
     const body = await req.json();
 
+    const rawSubtitle = body.subtitle ?? body.subTitle ?? body.shortDescription;
+    if (rawSubtitle !== undefined) {
+      if (typeof rawSubtitle === "string" && rawSubtitle.length > 150) {
+        return NextResponse.json(
+          { error: "Subtitle cannot exceed 150 characters" },
+          { status: 400 },
+        );
+      }
+      body.subtitle = typeof rawSubtitle === "string" ? rawSubtitle.trim() : rawSubtitle;
+    }
+
     if (body.isHero) {
       await Product.updateMany({ _id: { $ne: id }, isHero: true }, { isHero: false });
     }
