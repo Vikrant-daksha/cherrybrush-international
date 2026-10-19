@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback, Suspense } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  Suspense,
+} from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import VerticalProductCard from "@/components/verticalProductCard/verticalProductCard";
 import { FiSearch, FiChevronLeft, FiChevronRight, FiX } from "react-icons/fi";
@@ -227,7 +233,8 @@ function CollectionContent() {
               Collection Launching Soon
             </h3>
             <p className="font-sans text-xs text-[#8a7060] mt-1 max-w-sm mx-auto">
-              There are currently no products in the catalog. Please check back soon or explore our sizing and package guides!
+              There are currently no products in the catalog. Please check back
+              soon or explore our sizing and package guides!
             </p>
           </div>
         ) : filteredProducts.length === 0 ? (

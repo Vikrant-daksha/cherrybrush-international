@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,6 +8,8 @@ import NailProductCard from "@/components/NailProductCard/NailProductCard";
 import VerticalProductCard from "@/components/verticalProductCard/verticalProductCard";
 import { AdminPayload } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
+import { useCurrency } from "@/context/CurrencyContext";
+import { getCurrencyInfo } from "@/lib/currencies";
 import {
   CiImageOn,
   CiTrash,
@@ -57,6 +59,99 @@ export default function CreateProductForm({
   const [price, setPrice] = useState<number | "">("");
   const [subtitle, setSubtitle] = useState("");
   const [description, setDescription] = useState("");
+
+  // Currency & Real-time Conversions State
+  const { rates, storeBaseCurrency, setStoreBaseCurrency } = useCurrency();
+  const [adminBaseCurrency, setAdminBaseCurrency] = useState<string>(storeBaseCurrency);
+  const [isSavingCurrency, setIsSavingCurrency] = useState(false);
+  const [currencyNotice, setCurrencyNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (storeBaseCurrency) {
+      setAdminBaseCurrency(storeBaseCurrency);
+    }
+  }, [storeBaseCurrency]);
+
+  const handleBaseCurrencyChange = async (newBase: string) => {
+    setAdminBaseCurrency(newBase);
+    setIsSavingCurrency(true);
+    setCurrencyNotice(null);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ baseCurrency: newBase }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStoreBaseCurrency(newBase);
+        setCurrencyNotice(`✓ Store base currency set to ${newBase}`);
+        setTimeout(() => setCurrencyNotice(null), 3000);
+      } else {
+        throw new Error(data.error || "Failed to update base currency");
+      }
+    } catch (err: any) {
+      console.error("Base currency update error:", err);
+      alert(`Failed to save base currency: ${err.message}`);
+      setAdminBaseCurrency(storeBaseCurrency);
+    } finally {
+      setIsSavingCurrency(false);
+    }
+  };
+
+  const baseCurrencySymbol = useMemo(() => {
+    try {
+      const parts = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: adminBaseCurrency,
+      }).formatToParts(0);
+      return parts.find((p) => p.type === "currency")?.value || adminBaseCurrency;
+    } catch {
+      return adminBaseCurrency;
+    }
+  }, [adminBaseCurrency]);
+
+  // Real-time calculations for popular country currencies
+  const popularConversions = useMemo(() => {
+    const numericPrice =
+      typeof price === "number" ? price : parseFloat(String(price || "")) || 0;
+    if (numericPrice <= 0 || !rates || Object.keys(rates).length === 0) {
+      return [];
+    }
+
+    const popularCodes = ["USD", "EUR", "GBP", "CAD", "AUD", "AED", "SAR", "JPY", "INR", "SGD", "CHF"];
+    const baseRate =
+      rates[adminBaseCurrency] || (adminBaseCurrency === "USD" ? 1 : rates["INR"] || 1);
+
+    return popularCodes
+      .filter((code) => code !== adminBaseCurrency && rates[code])
+      .map((code) => {
+        const targetRate = rates[code];
+        const priceInUSD = numericPrice / baseRate;
+        const converted = priceInUSD * targetRate;
+        const decimals = ["JPY", "KRW"].includes(code) ? 0 : 2;
+
+        let formatted: string;
+        try {
+          formatted = new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: code,
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+          }).format(converted);
+        } catch {
+          formatted = `${code} ${converted.toFixed(decimals)}`;
+        }
+
+        const info = getCurrencyInfo(code);
+        return {
+          code,
+          name: info.name,
+          countryCode: info.countryCode,
+          formatted,
+        };
+      });
+  }, [price, rates, adminBaseCurrency]);
 
   // Deferred Images State (Local File previews + Direct URLs)
   const [images, setImages] = useState<ImageItem[]>([]);
@@ -416,7 +511,7 @@ export default function CreateProductForm({
                     description ||
                     "A soft blush ombre with shimmer details for an effortlessly elegant look."
                   }
-                  price={price !== "" ? `₹${price}` : "₹799"}
+                  price={price !== "" ? `${price}` : "799"}
                   colors={colors}
                   shapes={shapes}
                   nailSizes={sizes}
@@ -436,7 +531,7 @@ export default function CreateProductForm({
                       description ||
                       "A soft blush ombre with shimmer details for an effortlessly elegant look."
                     }
-                    price={price !== "" ? `₹${price}` : "₹799"}
+                    price={price !== "" ? `${price}` : "799"}
                     colors={colors}
                     shapes={shapes}
                     lengths={lengths}
@@ -663,23 +758,123 @@ export default function CreateProductForm({
                 />
               </div>
 
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-[#3d2b1f] mb-1">
-                  Price (₹) *
-                </label>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  value={price}
-                  onChange={(e) =>
-                    setPrice(
-                      e.target.value === "" ? "" : Number(e.target.value),
-                    )
-                  }
-                  placeholder="799"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#e8c0c8] text-sm bg-white text-[#3d2b1f] focus:ring-2 focus:ring-[#c88389]/30 focus:border-[#c88389] outline-none"
-                />
+              {/* ── Price and Real-Time Currency Conversion Section ── */}
+              <div className="col-span-1 sm:col-span-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1.5">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-[#3d2b1f]">
+                    Price ({adminBaseCurrency} {baseCurrencySymbol}) *
+                  </label>
+
+                  {/* Store Base Currency Selector */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-semibold text-[#8a5d68]">
+                      Store Base Currency:
+                    </span>
+                    <div className="relative inline-flex items-center">
+                      <select
+                        value={adminBaseCurrency}
+                        disabled={isSavingCurrency}
+                        onChange={(e) => handleBaseCurrencyChange(e.target.value)}
+                        className="text-xs font-bold text-[#c88389] bg-white border border-[#e8c0c8] rounded-xl px-2.5 py-1.5 pr-7 outline-none cursor-pointer hover:border-[#c88389] focus:ring-2 focus:ring-[#c88389]/20 transition-all appearance-none shadow-2xs"
+                      >
+                        {[
+                          { code: "INR", label: "INR (₹) — Indian Rupee" },
+                          { code: "USD", label: "USD ($) — US Dollar" },
+                          { code: "EUR", label: "EUR (€) — Euro" },
+                          { code: "GBP", label: "GBP (£) — British Pound" },
+                          { code: "CAD", label: "CAD (CA$) — Canadian Dollar" },
+                          { code: "AUD", label: "AUD (AU$) — Australian Dollar" },
+                          { code: "AED", label: "AED (AED) — UAE Dirham" },
+                          { code: "SAR", label: "SAR (SAR) — Saudi Riyal" },
+                          { code: "SGD", label: "SGD (SG$) — Singapore Dollar" },
+                          { code: "JPY", label: "JPY (¥) — Japanese Yen" },
+                          { code: "CHF", label: "CHF (CHF) — Swiss Franc" },
+                        ].map((c) => (
+                          <option key={c.code} value={c.code}>
+                            {c.label}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="absolute right-2 pointer-events-none text-[10px] text-[#c88389]">
+                        ▼
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {currencyNotice && (
+                  <p className="text-[11px] font-semibold text-emerald-600 mb-2">
+                    {currencyNotice}
+                  </p>
+                )}
+
+                {/* Price Input with Symbol prefix */}
+                <div className="relative flex items-center">
+                  <span className="absolute left-3.5 text-sm font-semibold text-[#a0604a] pointer-events-none select-none">
+                    {baseCurrencySymbol}
+                  </span>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    step="any"
+                    value={price}
+                    onChange={(e) =>
+                      setPrice(
+                        e.target.value === "" ? "" : Number(e.target.value),
+                      )
+                    }
+                    placeholder="799"
+                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#e8c0c8] text-sm bg-white text-[#3d2b1f] font-semibold focus:ring-2 focus:ring-[#c88389]/30 focus:border-[#c88389] outline-none"
+                  />
+                </div>
+
+                {/* ── Real-Time Popular Countries Conversion Panel ── */}
+                <div className="mt-3 p-4 rounded-2xl border border-[#e8c0c8]/90 bg-[#fdf8f9] shadow-xs">
+                  <div className="flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-[#f5e1e5]">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm">🌍</span>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#3d2b1f]">
+                        Real-Time Popular Country Conversions
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-medium text-[#8a5d68]">
+                      Base: <strong>1 {adminBaseCurrency}</strong>
+                    </span>
+                  </div>
+
+                  {popularConversions.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                      {popularConversions.map((conv) => (
+                        <div
+                          key={conv.code}
+                          className="flex items-center gap-2 p-2 rounded-xl bg-white border border-[#edd8de] shadow-2xs hover:border-[#c88389] transition-colors"
+                        >
+                          <div className="relative w-6 h-6 rounded-full overflow-hidden border border-black/10 shrink-0 bg-gray-50 flex items-center justify-center">
+                            <img
+                              src={`https://flagcdn.com/w80/${conv.countryCode}.png`}
+                              alt={conv.name}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-bold text-[#8a5d68] uppercase leading-none">
+                              {conv.code}
+                            </p>
+                            <p className="text-xs font-bold text-[#3d2b1f] truncate leading-tight mt-0.5">
+                              {conv.formatted}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-2 text-center text-[11px] text-[#8a5d68]/80 italic">
+                      Type a price above to view real-time converted rates for USD, EUR, GBP, CAD, AUD, AED, etc.
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* ── Featured Hero Checkbox ── */}

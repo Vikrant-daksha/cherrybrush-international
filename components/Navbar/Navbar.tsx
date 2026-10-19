@@ -139,8 +139,8 @@ export default function Navbar({ className = "" }: NavbarProps) {
     <header
       className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
         isScrolled
-          ? "bg-white/40 backdrop-blur-md border-b border-black/10 py-4 "
-          : "bg-[#fdf0f2]/10 border-b border-[#c25d65]/10 py-5 md:py-6"
+          ? "bg-white/40 backdrop-blur-md border-b border-black/10 py-3 "
+          : "bg-[#fdf0f2]/10 border-b border-[#c25d65]/10 py-4 md:py-4"
       } ${className}`}
     >
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 flex items-center justify-between relative">
@@ -263,7 +263,7 @@ export default function Navbar({ className = "" }: NavbarProps) {
                             <p className="text-[10px] font-semibold tracking-wider text-[#c88389] uppercase truncate">
                               {p.collection}
                             </p>
-                            <h4 className="text-xs font-serif font-normal text-[#3d2b1f] uppercase truncate group-hover:text-[#c88389] transition-colors">
+                            <h4 className="text-xs font-medium text-[#3d2b1f] uppercase truncate group-hover:text-[#c88389] transition-colors">
                               {p.name}
                             </h4>
                             <p className="text-xs font-bold text-[#3d2b1f] mt-0.5">

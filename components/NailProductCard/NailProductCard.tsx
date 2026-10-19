@@ -8,6 +8,7 @@ import { FaCartShopping } from "react-icons/fa6";
 import NailShapeIcon from "../NailShapeIcon/NailShapeIcon";
 
 import { useCart } from "@/context/CartContext";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export interface ColorSwatch {
   hex: string;
@@ -138,9 +139,12 @@ export default function NailProductCard({
   onQuickView,
 }: NailProductCardProps) {
   const { addToCart } = useCart();
+  const { formatPrice } = useCurrency();
   const [wishlisted, setWishlisted] = useState(false);
   const [showQuickView, setShowQuickView] = useState(false);
   const [showExtraInfo, setShowExtraInfo] = useState(false);
+
+  const displayedPrice = formatPrice(price);
 
   // Filter incoming variants to avoid ghost or empty strings
   const validColors = (colors || []).filter(
@@ -265,14 +269,14 @@ export default function NailProductCard({
           {cardHref ? (
             <Link href={cardHref} className="block group/title">
               <h2
-                className={`font-serif ${config.title} font-normal tracking-wider text-[#3d2b1f] uppercase leading-tight line-clamp-1 sm:line-clamp-2 group-hover/title:text-[#c88389] transition-colors`}
+                className={`${config.title} font-medium tracking-wider text-[#3d2b1f] uppercase leading-tight line-clamp-1 sm:line-clamp-2 group-hover/title:text-[#c88389] transition-colors`}
               >
                 {name}
               </h2>
             </Link>
           ) : (
             <h2
-              className={`font-serif ${config.title} font-normal tracking-wider text-[#3d2b1f] uppercase leading-tight line-clamp-1 sm:line-clamp-2`}
+              className={`${config.title} font-medium tracking-wider text-[#3d2b1f] uppercase leading-tight line-clamp-1 sm:line-clamp-2`}
             >
               {name}
             </h2>
@@ -670,9 +674,9 @@ export default function NailProductCard({
         <div className="min-w-0 pt-1">
           <div className="flex items-center justify-between mb-1 sm:mb-2 md:mb-3">
             <span
-              className={`font-serif ${config.price} font-normal text-[#3d2b1f] tracking-wide leading-none`}
+              className={`${config.price} font-semibold text-[#3d2b1f] tracking-wide leading-none`}
             >
-              {price}
+              {displayedPrice}
             </span>
           </div>
 

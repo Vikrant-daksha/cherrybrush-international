@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FaCartShopping, FaXmark } from "react-icons/fa6";
 import { useCart } from "@/context/CartContext";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export interface ColorSwatch {
   hex: string;
@@ -98,9 +99,12 @@ export default function VerticalProductCard({
   onQuickView,
 }: NailProductCardProps) {
   const { addToCart } = useCart();
+  const { formatPrice } = useCurrency();
   const [wishlisted, setWishlisted] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  const displayedPrice = formatPrice(price);
 
   useEffect(() => {
     setMounted(true);
@@ -237,12 +241,12 @@ export default function VerticalProductCard({
 
             {cardHref ? (
               <Link href={cardHref} className="block group/title">
-                <h2 className="font-serif text-lg md:text-xl font-normal tracking-wider text-[#3d2b1f] uppercase leading-snug line-clamp-2 group-hover/title:text-[#c88389] transition-colors">
+                <h2 className="text-lg md:text-xl font-medium tracking-wider text-[#3d2b1f] uppercase leading-snug line-clamp-2 group-hover/title:text-[#c88389] transition-colors">
                   {name}
                 </h2>
               </Link>
             ) : (
-              <h2 className="font-serif text-lg md:text-xl font-normal tracking-wider text-[#3d2b1f] uppercase leading-snug line-clamp-2">
+              <h2 className="text-lg md:text-xl font-medium tracking-wider text-[#3d2b1f] uppercase leading-snug line-clamp-2">
                 {name}
               </h2>
             )}
@@ -292,8 +296,8 @@ export default function VerticalProductCard({
 
           {/* Price */}
           <div className="flex items-center justify-between mt-2">
-            <span className="font-serif text-2xl font-normal text-[#3d2b1f] tracking-wide">
-              {price}
+            <span className="text-xl md:text-2xl font-semibold text-[#3d2b1f] tracking-wide">
+              {displayedPrice}
             </span>
           </div>
 
@@ -362,13 +366,7 @@ export default function VerticalProductCard({
                     <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-[#c88389] mb-1">
                       {collection}
                     </p>
-                    <h3
-                      className="font-serif text-xl sm:text-2xl font-normal text-[#3d2b1f] uppercase leading-snug pr-10 line-clamp-2"
-                      style={{
-                        fontFamily:
-                          'var(--font-cormorant, "Cormorant Garamond", serif)',
-                      }}
-                    >
+                    <h3 className="text-xl sm:text-2xl font-medium text-[#3d2b1f] uppercase leading-snug pr-10 line-clamp-2">
                       {name}
                     </h3>
                     {reviewCount > 0 && (
@@ -379,14 +377,8 @@ export default function VerticalProductCard({
                         </span>
                       </div>
                     )}
-                    <p
-                      className="font-serif text-2xl font-normal text-[#3d2b1f] mt-2"
-                      style={{
-                        fontFamily:
-                          'var(--font-cormorant, "Cormorant Garamond", serif)',
-                      }}
-                    >
-                      {price}
+                    <p className="text-2xl font-semibold text-[#3d2b1f] mt-2">
+                      {displayedPrice}
                     </p>
                   </div>
 

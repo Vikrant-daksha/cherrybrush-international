@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { extractGeoFromHeaders } from "@/lib/geo";
 
 export function middleware(request: NextRequest) {
   // Extract client IP address reliably from headers
@@ -32,11 +33,16 @@ export function middleware(request: NextRequest) {
     );
   }
 
-  // Continue to route & append rate limit metadata to response headers
+  // Detect visitor country and currency from Cloudflare / Vercel headers
+  const geo = extractGeoFromHeaders(request.headers);
+
+  // Continue to route & append metadata to response headers
   const response = NextResponse.next();
   response.headers.set("X-RateLimit-Limit", String(rateResult.limit));
   response.headers.set("X-RateLimit-Remaining", String(rateResult.remaining));
   response.headers.set("X-RateLimit-Reset", String(rateResult.resetSeconds));
+  response.headers.set("X-User-Country", geo.country);
+  response.headers.set("X-User-Currency", geo.currency);
 
   return response;
 }

@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import SizeChartModal from "../SizeChartModal/SizeChartModal";
 import NailShapeIcon from "../NailShapeIcon/NailShapeIcon";
+import VerticalProductCard from "../verticalProductCard/verticalProductCard";
+import { useCurrency } from "@/context/CurrencyContext";
 
 // ── Types & Interfaces ──
 export interface NailShape {
@@ -155,6 +158,7 @@ export default function ProductPage({
   className = "",
 }: ProductPageProps) {
   const { addToCart } = useCart();
+  const { formatPrice } = useCurrency();
   const searchParams = useSearchParams();
 
   // Filter incoming variants to avoid ghost or empty strings
@@ -186,28 +190,86 @@ export default function ProductPage({
   const urlSize = searchParams?.get("size");
   const urlShade = searchParams?.get("shade") || searchParams?.get("color");
 
+  // Case-insensitive resolution so ?shape=Almond and ?shape=almond both match correctly
+  const resolvedShape =
+    validShapes.find(
+      (s) =>
+        s.id.toLowerCase() === urlShape?.toLowerCase() ||
+        s.name.toLowerCase() === urlShape?.toLowerCase(),
+    )?.id ||
+    validShapes[0]?.id ||
+    "";
+
+  const resolvedLength =
+    validLengths.find((l) => l.toLowerCase() === urlLength?.toLowerCase()) ||
+    validLengths[0] ||
+    "";
+
+  const resolvedSize =
+    validSizes.find((sz) => sz.toLowerCase() === urlSize?.toLowerCase()) ||
+    validSizes[0] ||
+    "";
+
+  const resolvedColor =
+    validColors.find(
+      (c) =>
+        c.name?.toLowerCase() === urlShade?.toLowerCase() ||
+        c.color?.toLowerCase() === urlShade?.toLowerCase() ||
+        c.id?.toLowerCase() === urlShade?.toLowerCase(),
+    )?.name ||
+    validColors.find(
+      (c) =>
+        c.name?.toLowerCase() === urlShade?.toLowerCase() ||
+        c.color?.toLowerCase() === urlShade?.toLowerCase() ||
+        c.id?.toLowerCase() === urlShade?.toLowerCase(),
+    )?.color ||
+    urlShade ||
+    validColors[0]?.name ||
+    validColors[0]?.color ||
+    validColors[0]?.id ||
+    "";
+
   // State Management
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [selectedShape, setSelectedShape] = useState<string>(
-    urlShape || validShapes[0]?.id || "",
-  );
-  const [selectedLength, setSelectedLength] = useState<string>(
-    urlLength || validLengths[0] || "",
-  );
-  const [selectedSize, setSelectedSize] = useState<string>(
-    urlSize || validSizes[0] || "",
-  );
-  const [selectedColor, setSelectedColor] = useState<string>(
-    urlShade ||
-      validColors[0]?.name ||
-      validColors[0]?.color ||
-      validColors[0]?.id ||
-      "",
-  );
+  const [selectedShape, setSelectedShape] = useState<string>(resolvedShape);
+  const [selectedLength, setSelectedLength] = useState<string>(resolvedLength);
+  const [selectedSize, setSelectedSize] = useState<string>(resolvedSize);
+  const [selectedColor, setSelectedColor] = useState<string>(resolvedColor);
   const [sizeChartModal, setSizeChartModal] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [quantity, setQuantity] = useState(1);
   const [showExtraInfo, setShowExtraInfo] = useState(false);
+  const [recentProducts, setRecentProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadRecent() {
+      try {
+        const res = await fetch("/api/products");
+        if (!res.ok) return;
+        const json = await res.json();
+        if (json.success && Array.isArray(json.products)) {
+          const currentId = data.id || data.name;
+          const filtered = json.products.filter(
+            (p: any) =>
+              p._id !== currentId &&
+              p.slug !== currentId &&
+              p.name !== data.name,
+          );
+          if (isMounted) {
+            setRecentProducts(filtered.slice(0, 4));
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load recommendations", e);
+      }
+    }
+    loadRecent();
+    return () => {
+      isMounted = false;
+    };
+  }, [data.id, data.name]);
 
   // Handlers
   const handleWishlistClick = () => {
@@ -233,7 +295,7 @@ export default function ProductPage({
       size: selectedSize || undefined,
       color: selectedColor || undefined,
       shade: selectedColor || undefined,
-      quantity: 1,
+      quantity: quantity,
     });
 
     onAddToBag?.({
@@ -241,9 +303,15 @@ export default function ProductPage({
       shape: selectedShape,
       length: selectedLength,
       size: selectedSize,
-      quantity: 1,
+      quantity: quantity,
     });
     setTimeout(() => setIsAdding(false), 600);
+  };
+
+  const handleBuyNow = () => {
+    window.alert(
+      `Proceeding to checkout with ${quantity}x ${data.name || "Press-On Nail Set"}!`,
+    );
   };
 
   return (
@@ -378,34 +446,18 @@ export default function ProductPage({
         ══════════════════════════════════════════════════════════════ */}
         <section
           aria-label="Product Information and Customization"
-          className="lg:col-span-6 flex flex-col justify-start space-y-6 lg:pl-4"
+          className="lg:col-span-6 flex flex-col justify-start space-y-4 lg:pl-4"
         >
           {/* Header: Title, Subtitle, Rating & Price */}
           <div className="space-y-2">
-            <h1
-              className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-wide text-[#3d2b1f] uppercase leading-none"
-              style={{
-                fontFamily:
-                  'var(--font-cormorant, "Cormorant Garamond", serif)',
-                letterSpacing: "0.08em",
-              }}
-            >
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-medium tracking-wide text-[#3d2b1f] uppercase leading-none">
               {data.name}
             </h1>
 
             {/* Price */}
             <div className="pt-2">
-              <span
-                className="text-3xl sm:text-4xl font-normal text-[#3d2b1f] tracking-tight"
-                style={{
-                  fontFamily:
-                    'var(--font-cormorant, "Cormorant Garamond", serif)',
-                }}
-              >
-                {data.currency || "₹"}
-                {typeof data.price === "number"
-                  ? data.price.toLocaleString()
-                  : data.price}
+              <span className="text-3xl sm:text-4xl font-semibold text-[#3d2b1f] tracking-tight">
+                {formatPrice(data.price ?? 0)}
               </span>
             </div>
 
@@ -453,13 +505,15 @@ export default function ProductPage({
 
           {/* ── 1. SHAPE SELECTOR ── */}
           {data.shapes && data.shapes.length > 0 && (
-            <div className="space-y-2.5 pt-2">
+            <div className="space-y-2.5 pt-1">
               <h2 className="text-sm font-bold tracking-[0.02em] text-[#a0604a]">
                 Shape
               </h2>
               <div className="flex items-center gap-2.5 sm:gap-3.5 flex-wrap">
                 {data.shapes.map((shape) => {
-                  const isSelected = selectedShape === shape.id;
+                  const isSelected =
+                    selectedShape?.toLowerCase() === shape.id?.toLowerCase() ||
+                    selectedShape?.toLowerCase() === shape.name?.toLowerCase();
                   return (
                     <button
                       key={shape.id}
@@ -496,13 +550,14 @@ export default function ProductPage({
 
           {/* ── 2. LENGTH SELECTOR ── */}
           {data.lengths && data.lengths.length > 0 && (
-            <div className="space-y-2.5 pt-1">
+            <div className="space-y-2.5">
               <h2 className="text-sm font-bold tracking-[0.02em] text-[#a0604a]">
                 Length
               </h2>
               <div className="flex items-center gap-2 sm:gap-3">
                 {data.lengths.map((len) => {
-                  const isSelected = selectedLength === len;
+                  const isSelected =
+                    selectedLength?.toLowerCase() === len?.toLowerCase();
                   return (
                     <button
                       key={len}
@@ -524,7 +579,7 @@ export default function ProductPage({
 
           {/* ── 3. SIZE SELECTOR ── */}
           {data.sizes && data.sizes.length > 0 && (
-            <div className="space-y-2.5 pt-1">
+            <div className="space-y-2.5">
               <div className="flex items-center justify-between max-w-lg">
                 <h2 className="text-sm font-bold tracking-[0.02em] text-[#a0604a]">
                   Size
@@ -556,7 +611,8 @@ export default function ProductPage({
 
               <div className="flex items-center gap-2 sm:gap-3">
                 {data.sizes.map((size) => {
-                  const isSelected = selectedSize === size;
+                  const isSelected =
+                    selectedSize?.toLowerCase() === size?.toLowerCase();
                   return (
                     <button
                       key={size}
@@ -593,7 +649,7 @@ export default function ProductPage({
           )}
 
           {/* {data?.packageType && ( */}
-          <div className=" pt-5 flex items-center gap-5">
+          <div className=" pt-3 flex items-center gap-5">
             <span className="inline-flex items-center gap-1 text-[8px] md:text-[10px] font-semibold uppercase tracking-wider text-[#c25d65] bg-[#fdf0f2] border border-[#e8c0c8]/70 rounded-full px-2 py-0.5">
               <NailShapeIcon
                 type="oval"
@@ -664,15 +720,48 @@ export default function ProductPage({
 
           {/* )} */}
 
-          {/* ── 4. CTA BUTTONS: ADD TO BAG & WISHLIST ── */}
-          <div className="flex items-center gap-3">
+          {/* ── 4. CTA BUTTONS: COUNTER, ADD TO CART & BUY NOW ── */}
+          <div className="w-full max-w-xl  flex items-center gap-2 sm:gap-3 pt-2">
+            {/* Quantity Counter */}
+            <div className="flex items-center justify-between border-2 border-[#edd8de] rounded-xl h-12 sm:h-14 bg-white/80 shrink-0 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                aria-label="Decrease quantity"
+                className="w-7 h-full sm:w-8 sm:h-full flex items-center justify-center text-[#7a6054] hover:text-[#d87c8e] hover:bg-[#faedf0] active:scale-90 transition-all font-bold text-base sm:text-lg select-none"
+              >
+                −
+              </button>
+              <span className="text-xs sm:text-sm font-bold text-[#3d2b1f] px-2 select-none text-center min-w-[20px]">
+                {quantity}
+              </span>
+              <button
+                type="button"
+                onClick={() => setQuantity((q) => q + 1)}
+                aria-label="Increase quantity"
+                className="w-7 h-full sm:w-8 sm:h-full flex items-center justify-center text-[#7a6054] hover:text-[#d87c8e] hover:bg-[#faedf0] active:scale-90 transition-all font-bold text-base sm:text-lg select-none"
+              >
+                +
+              </button>
+            </div>
+
+            {/* Add to Cart Button */}
             <button
               type="button"
               onClick={handleAddToBag}
               disabled={isAdding}
-              className="flex-1 bg-[#d87c8e] hover:bg-[#c96c7e] active:scale-[0.98] text-white font-medium py-3.5 sm:py-5 px-6 rounded-sm tracking-[0.14em] uppercase text-xs sm:text-sm transition-all duration-300 shadow-[0_8px_25px_rgba(216,124,142,0.35)] hover:shadow-[0_12px_32px_rgba(216,124,142,0.45)] cursor-pointer flex items-center justify-center gap-2"
+              className="flex-1 h-10 sm:h-14 bg-[#d87c8e] hover:bg-[#c96c7e] active:scale-[0.98] text-white font-semibold px-2 sm:px-4 rounded-xl tracking-[0.06em] sm:tracking-[0.1em] uppercase text-[11px] sm:text-xs md:text-sm transition-all duration-300 shadow-[0_6px_20px_rgba(216,124,142,0.3)] hover:shadow-[0_10px_25px_rgba(216,124,142,0.42)] cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <span>{isAdding ? "ADDING TO CART..." : "ADD TO CART"}</span>
+              <span>{isAdding ? "ADDING..." : "ADD TO CART"}</span>
+            </button>
+
+            {/* Buy Now Button */}
+            <button
+              type="button"
+              onClick={handleBuyNow}
+              className="flex-1 h-12 sm:h-14 bg-[#3d2b1f] hover:bg-[#251a13] active:scale-[0.98] text-white font-semibold px-2 sm:px-4 rounded-xl tracking-[0.06em] sm:tracking-[0.1em] uppercase text-[11px] sm:text-xs md:text-sm transition-all duration-300 shadow-[0_6px_20px_rgba(61,43,31,0.2)] hover:shadow-[0_10px_25px_rgba(61,43,31,0.3)] cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <span>BUY NOW</span>
             </button>
           </div>
 
@@ -696,6 +785,58 @@ export default function ProductPage({
           )} */}
         </section>
       </div>
+
+      {/* ── You Might Also Like Section (using VerticalProductCard) ── */}
+      {recentProducts.length > 0 && (
+        <section className="w-[85%] mx-auto px-4 sm:px-6 pt-16 pb-12 border-t border-[#f0e0e5] mt-16">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-2">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-widest text-[#c88389]">
+                Handcrafted Suggestions
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-light text-[#3d2b1f] mt-1">
+                You Might Also Like
+              </h2>
+            </div>
+            <Link
+              href="/collection"
+              className="text-xs font-bold uppercase tracking-wider text-[#8a7060] hover:text-[#c88389] transition-colors"
+            >
+              View All Sets →
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+            {recentProducts.map((p) => (
+              <div key={p._id} className="w-full h-full">
+                <VerticalProductCard
+                  href={`/collection/${p.slug || p._id}`}
+                  imageSrc={p.images?.[0] || "/product.png"}
+                  imageAlt={p.name}
+                  name={p.name}
+                  collection={p.collection || "Press-On Nails"}
+                  style={p.style}
+                  description={p.description || ""}
+                  shapes={p.shapes}
+                  lengths={p.lengths}
+                  sizes={p.sizes}
+                  price={`₹${p.price}`}
+                  badge={p.badge}
+                  rating={p.rating ?? 5}
+                  reviewCount={p.reviewCount ?? 0}
+                  packageType={p.packageType}
+                  colors={p.colors || []}
+                  extraColorsCount={
+                    (p.colors?.length || 0) > 2
+                      ? (p.colors?.length || 0) - 2
+                      : 0
+                  }
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </main>
   );
 }

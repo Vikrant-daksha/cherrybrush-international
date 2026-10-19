@@ -15,7 +15,17 @@ export const metadata: Metadata = {
 };
 
 import { CartProvider } from '@/context/CartContext';
+import { CurrencyProvider } from '@/context/CurrencyContext';
 import CartDrawer from '@/components/CartDrawer/CartDrawer';
+import CurrencySelector from '@/components/CurrencySelector/CurrencySelector';
+import { Josefin_Sans } from 'next/font/google';
+
+const josefinSans = Josefin_Sans({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  display: 'swap',
+  variable: '--font-josefin',
+});
 
 export default function RootLayout({
   children,
@@ -23,13 +33,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="relative">
-        <CartProvider>
-          <Navbar />
-          {children}
-          <CartDrawer />
-        </CartProvider>
+    <html lang="en" className={josefinSans.variable}>
+      <body className={`relative ${josefinSans.className}`}>
+        <CurrencyProvider>
+          <CartProvider>
+            <Navbar />
+            {children}
+            <CartDrawer />
+            <CurrencySelector />
+          </CartProvider>
+        </CurrencyProvider>
       </body>
     </html>
   );
