@@ -29,23 +29,21 @@ const firebaseConfig = {
     clean(process.env.FIREBASE_MEASUREMENTID),
 };
 
-// Initialize Firebase as a singleton to prevent re-initialization during hot reload
-const app: FirebaseApp = getApps().length
-  ? getApp()
-  : initializeApp(firebaseConfig);
+// Initialize Firebase only when a valid apiKey is present.
+// Prevents FirebaseError (auth/invalid-api-key) during SSR / deployment build prerenders.
+let appInstance: FirebaseApp | null = null;
+let authInstance: Auth = {} as Auth;
 
-// Initialize Firebase Authentication safely
-let authInstance: Auth;
-try {
-  authInstance = getAuth(app);
-} catch (error) {
-  console.warn(
-    "⚠️ Firebase Auth initialization warning during SSR/Prerender:",
-    error,
-  );
-  authInstance = {} as Auth;
+if (rawApiKey) {
+  try {
+    appInstance = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    authInstance = getAuth(appInstance);
+  } catch (error) {
+    console.warn("⚠️ Firebase Auth initialization error:", error);
+  }
 }
 
+export const app: FirebaseApp = (appInstance || {}) as FirebaseApp;
 export const auth: Auth = authInstance;
 
 // Google Auth Provider setup
@@ -55,12 +53,12 @@ googleProvider.setCustomParameters({
 });
 
 // Analytics (only initialized in browser environments that support it)
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && appInstance) {
   import("firebase/analytics")
     .then(({ getAnalytics, isSupported }) => {
       isSupported().then((supported) => {
-        if (supported) {
-          getAnalytics(app);
+        if (supported && appInstance) {
+          getAnalytics(appInstance);
         }
       });
     })

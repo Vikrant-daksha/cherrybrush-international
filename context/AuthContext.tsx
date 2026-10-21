@@ -106,6 +106,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithEmail = async (email: string, pass: string) => {
+    if (!auth || !auth.app) {
+      throw new Error(
+        "Authentication is not initialized. Please verify NEXT_PUBLIC_FIREBASE_API_KEY."
+      );
+    }
     const cred = await signInWithEmailAndPassword(auth, email.trim(), pass);
     if (cred.user) {
       await syncWithMongoDB(cred.user);
@@ -113,6 +118,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUpWithEmail = async (email: string, pass: string) => {
+    if (!auth || !auth.app) {
+      throw new Error(
+        "Authentication is not initialized. Please verify NEXT_PUBLIC_FIREBASE_API_KEY."
+      );
+    }
     const cred = await createUserWithEmailAndPassword(auth, email.trim(), pass);
     if (cred.user) {
       // Sync into MongoDB User schema with phone number & name
@@ -121,6 +131,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
+    if (!auth || !auth.app) {
+      throw new Error(
+        "Google Sign-In is not initialized. Please verify NEXT_PUBLIC_FIREBASE_API_KEY."
+      );
+    }
     const cred = await signInWithPopup(auth, googleProvider);
     if (cred.user) {
       await syncWithMongoDB(cred.user);
@@ -129,7 +144,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await signOut(auth);
+      if (auth && auth.app) {
+        await signOut(auth);
+      }
       setMongoUser(null);
       await fetch("/api/auth/logout", { method: "POST" });
     } catch (e) {
