@@ -37,6 +37,7 @@ export interface IPricingSnapshot {
   shippingFee: number; // In order currency
   tax: number; // In order currency
   discount: number; // In order currency
+  couponCode?: string; // Applied coupon code, e.g. "VIP20"
   totalAmount: number; // Final payable amount in order currency
 }
 
@@ -122,6 +123,7 @@ const PricingSnapshotSchema = new Schema<IPricingSnapshot>(
     shippingFee: { type: Number, default: 0, min: 0 },
     tax: { type: Number, default: 0, min: 0 },
     discount: { type: Number, default: 0, min: 0 },
+    couponCode: { type: String, trim: true },
     totalAmount: { type: Number, required: true, min: 0 },
   },
   { _id: false }

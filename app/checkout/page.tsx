@@ -17,6 +17,7 @@ import {
   FiShoppingBag,
   FiLock,
   FiX,
+  FiUser,
 } from "react-icons/fi";
 import { getCloudinaryThumbnail } from "@/lib/imageLoader";
 import {
@@ -135,9 +136,15 @@ export default function CheckoutPage() {
     shippingFee,
     isLoadingShipping,
     setShippingCountry,
+    appliedCoupon,
+    applyCoupon,
+    removeCoupon,
+    couponError,
+    setCouponError,
+    isApplyingCoupon,
   } = useCart();
   const { formatPrice, selectedCurrency, availableCurrencies } = useCurrency();
-  const { user, mongoUser } = useAuth();
+  const { user, mongoUser, loading, openAuthModal } = useAuth();
 
   // Dynamic Country List derived from MongoDB-backed Currency Data
   const countries = useMemo(() => {
@@ -283,6 +290,7 @@ export default function CheckoutPage() {
     null,
   );
   const [phoneError, setPhoneError] = useState<string | null>(null);
+  const pendingOrderSubmitRef = useRef(false);
 
   // Synchronous phone validity & E.164 normalization for form submission
   const phoneValidation = useMemo(() => {
@@ -360,13 +368,8 @@ export default function CheckoutPage() {
     return "123 456 789";
   }, [country]);
 
-  // Discount / coupon states
+  // Coupon input state (appliedCoupon & validation managed via CartContext)
   const [discountCode, setDiscountCode] = useState("");
-  const [appliedDiscount, setAppliedDiscount] = useState<{
-    code: string;
-    rate: number;
-  } | null>(null);
-  const [discountError, setDiscountError] = useState<string | null>(null);
 
   // Pre-fill fields for authenticated user
   useEffect(() => {
@@ -673,92 +676,86 @@ export default function CheckoutPage() {
     setPhone(formatted);
   };
 
-  // Discount Calculation
-  const discountAmount = appliedDiscount
-    ? Math.round(totalPrice * appliedDiscount.rate)
-    : 0;
+  // Discount Calculation from Unified Coupon Engine
+  const discountAmount = appliedCoupon ? appliedCoupon.discountAmount : 0;
 
-  const effectiveShippingFee = selectedShippingMethod
-    ? selectedShippingMethod.isFree
+  const effectiveShippingFee =
+    items.length === 0 || appliedCoupon?.isFreeShipping
       ? 0
-      : selectedShippingMethod.price
-    : shippingFee || 0;
+      : selectedShippingMethod
+        ? selectedShippingMethod.isFree
+          ? 0
+          : selectedShippingMethod.price
+        : shippingFee || 0;
   const estimatedTax = 0; // Free / included in price
   const finalTotal = Math.max(
     0,
     totalPrice - discountAmount + effectiveShippingFee + estimatedTax,
   );
 
-  const handleApplyDiscount = () => {
-    const clean = discountCode.trim().toUpperCase();
-    if (!clean) return;
-
-    if (clean === "CHERRY10" || clean === "WELCOME10" || clean === "SAVE10") {
-      setAppliedDiscount({ code: clean, rate: 0.1 });
-      setDiscountError(null);
-      setDiscountCode("");
-    } else if (
-      clean === "CHERRY20" ||
-      clean === "VIP20" ||
-      clean === "SAVE20"
-    ) {
-      setAppliedDiscount({ code: clean, rate: 0.2 });
-      setDiscountError(null);
-      setDiscountCode("");
-    } else {
-      // Default welcoming discount for any promotional code entered
-      setAppliedDiscount({ code: clean, rate: 0.1 });
-      setDiscountError(null);
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) return;
+    const res = await applyCoupon(discountCode);
+    if (res.success) {
       setDiscountCode("");
     }
   };
 
   const handleRemoveDiscount = () => {
-    setAppliedDiscount(null);
-    setDiscountError(null);
+    removeCoupon();
+    setDiscountCode("");
   };
 
-  // 2. Submit to PayPal REST API
-  const handlePayWithPayPal = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitError(null);
+  // Form Validation Helper
+  const validateForm = (silent = false): boolean => {
+    if (!silent) setSubmitError(null);
 
-    // Validation
     if (!fullName.trim()) {
-      setSubmitError("Please enter your full name.");
-      return;
+      if (!silent) setSubmitError("Please enter your full name.");
+      return false;
     }
     if (!email.trim() || !email.includes("@")) {
-      setSubmitError("Please enter a valid email address.");
-      return;
+      if (!silent) setSubmitError("Please enter a valid email address.");
+      return false;
     }
     if (!phone.trim()) {
-      setSubmitError("Please enter your phone number.");
-      return;
+      if (!silent) setSubmitError("Please enter your phone number.");
+      return false;
     }
     if (!phoneValidation.isValid) {
       const countryName =
         countries.find((c) => c.code === country)?.name || country;
       const errMsg = `Please enter a valid phone number for ${countryName}.`;
-      setPhoneError(errMsg);
-      setSubmitError(errMsg);
-      return;
+      if (!silent) {
+        setPhoneError(errMsg);
+        setSubmitError(errMsg);
+      }
+      return false;
     }
     if (!addressLine1.trim()) {
-      setSubmitError("Please enter your street address.");
-      return;
+      if (!silent) setSubmitError("Please enter your street address.");
+      return false;
     }
     if (!city.trim() || !postalCode.trim()) {
-      setSubmitError("Please complete your city and postal code.");
-      return;
+      if (!silent) setSubmitError("Please complete your city and postal code.");
+      return false;
     }
     if (items.length === 0) {
-      setSubmitError("Your shopping bag is empty.");
-      return;
+      if (!silent) setSubmitError("Your shopping bag is empty.");
+      return false;
     }
 
+    return true;
+  };
+
+  // Execute Order Creation & Redirect to PayPal
+  const executeCreateOrder = async (authenticatedUser?: any) => {
     try {
       setIsSubmitting(true);
+      setSubmitError(null);
+
+      const activeUser = authenticatedUser || user;
+      const targetUserId = mongoUser?.id || activeUser?.uid || undefined;
 
       const fullPhoneNumber =
         phoneValidation.e164 ||
@@ -775,15 +772,23 @@ export default function CheckoutPage() {
           size: item.size || item.selectedSize || item.nailSize,
           shape: item.shape || item.selectedShape,
           length: item.length || item.selectedLength || item.nailLength,
-          color: item.shade || item.color || item.selectedShade || item.selectedColor,
-          shade: item.shade || item.color || item.selectedShade || item.selectedColor,
+          color:
+            item.shade ||
+            item.color ||
+            item.selectedShade ||
+            item.selectedColor,
+          shade:
+            item.shade ||
+            item.color ||
+            item.selectedShade ||
+            item.selectedColor,
           style: item.style,
         })),
         customer: {
           name: fullName.trim(),
           email: email.trim().toLowerCase(),
           phone: fullPhoneNumber,
-          userId: mongoUser?.id || user?.uid || undefined,
+          userId: targetUserId,
         },
         shippingAddress: {
           fullName: fullName.trim(),
@@ -798,6 +803,7 @@ export default function CheckoutPage() {
         },
         shippingFee: effectiveShippingFee,
         discount: discountAmount,
+        couponCode: appliedCoupon?.code || undefined,
         returnUrl: `${window.location.origin}/checkout/success`,
         cancelUrl: `${window.location.origin}/checkout`,
       };
@@ -834,11 +840,52 @@ export default function CheckoutPage() {
     }
   };
 
+  // Submit Handler: If guest, pop sign in screen directly on click WITHOUT validating form inputs;
+  // if authenticated, validate form inputs and proceed to PayPal
+  const handlePayWithPayPal = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!user) {
+      pendingOrderSubmitRef.current = true;
+      openAuthModal("signup");
+      return;
+    }
+
+    if (!validateForm()) {
+      return;
+    }
+
+    await executeCreateOrder(user);
+  };
+
+  // Seamless Auto-Submit: When guest authenticates after clicking "Sign in to Order",
+  // if all details are already filled, immediately forward to PayPal; otherwise let them finish filling
+  useEffect(() => {
+    if (user && pendingOrderSubmitRef.current) {
+      pendingOrderSubmitRef.current = false;
+      if (validateForm(true)) {
+        executeCreateOrder(user);
+      }
+    }
+  }, [user, mongoUser]);
+
+  // Loading State while verifying authentication session
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f3f4f6] text-[#111827] font-sans antialiased flex flex-col items-center justify-center p-4">
+        <div className="w-10 h-10 border-3 border-gray-300 border-t-black rounded-full animate-spin mb-4" />
+        <p className="text-sm font-medium text-gray-600">
+          Verifying checkout session...
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#f3f4f6] text-[#111827] font-sans antialiased pb-20">
       {/* ── 1. Top Checkout Header (With bottom border & Logo on the right) ── */}
       <header className="sticky top-0 z-40 w-full bg-white border-b border-gray-200/90 shadow-2xs">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Left: Back to Cart Button */}
           <Link
             href="/cart"
@@ -868,7 +915,7 @@ export default function CheckoutPage() {
       </header>
 
       {/* ── Main Content Container ── */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         {/* Resumed Order Banner */}
         {/* {resumedOrderNumber && (
             <div className="mb-6 p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs sm:text-sm flex items-center justify-between shadow-2xs">
@@ -932,6 +979,7 @@ export default function CheckoutPage() {
         ) : (
           <form
             onSubmit={handlePayWithPayPal}
+            noValidate
             className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
           >
             {/* ── Left Column: Shipping Information & Shipping Card (7 cols) ── */}
@@ -1219,9 +1267,10 @@ export default function CheckoutPage() {
                 ) : (
                   <div className="space-y-3">
                     {shippingMethods.map((method) => {
-                      const isSelected = selectedShippingMethod?.id === method.id;
+                      const isSelected =
+                        selectedShippingMethod?.id === method.id;
                       const methodCost =
-                        method.isFree || appliedDiscount?.code === "FREESHIP"
+                        method.isFree || appliedCoupon?.isFreeShipping
                           ? 0
                           : method.price;
 
@@ -1276,7 +1325,9 @@ export default function CheckoutPage() {
                                 : "text-gray-900"
                             }`}
                           >
-                            {methodCost === 0 ? "FREE" : formatPrice(methodCost)}
+                            {methodCost === 0
+                              ? "FREE"
+                              : formatPrice(methodCost)}
                           </div>
                         </div>
                       );
@@ -1403,7 +1454,7 @@ export default function CheckoutPage() {
                       value={discountCode}
                       onChange={(e) => {
                         setDiscountCode(e.target.value);
-                        setDiscountError(null);
+                        if (couponError) setCouponError(null);
                       }}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
@@ -1416,24 +1467,30 @@ export default function CheckoutPage() {
                     <button
                       type="button"
                       onClick={handleApplyDiscount}
-                      className="px-4 py-2 rounded-xl bg-black hover:bg-gray-800 text-white text-[14px] font-semibold tracking-wide transition-colors cursor-pointer"
+                      disabled={isApplyingCoupon}
+                      className="px-4 py-2 rounded-xl bg-black hover:bg-gray-800 text-white text-[14px] font-semibold tracking-wide transition-colors cursor-pointer disabled:opacity-60"
                     >
-                      Apply
+                      {isApplyingCoupon ? "Applying..." : "Apply"}
                     </button>
                   </div>
 
-                  {discountError && (
-                    <p className="text-[11px] text-black mt-1.5">
-                      {discountError}
+                  {couponError && (
+                    <p className="text-[11px] text-red-500 mt-1.5">
+                      {couponError}
                     </p>
                   )}
 
-                  {appliedDiscount && (
+                  {appliedCoupon && (
                     <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium">
                       <FiCheck className="w-3.5 h-3.5 text-emerald-600" />
                       <span>
-                        {appliedDiscount.code} applied (
-                        {(appliedDiscount.rate * 100).toFixed(0)}% OFF)
+                        {appliedCoupon.code} applied (
+                        {appliedCoupon.discountType === "percentage"
+                          ? `${appliedCoupon.discountValue}% OFF`
+                          : appliedCoupon.discountType === "free_shipping"
+                            ? "FREE SHIPPING"
+                            : `-${formatPrice(appliedCoupon.discountAmount)}`}
+                        )
                       </span>
                       <button
                         type="button"
@@ -1458,7 +1515,7 @@ export default function CheckoutPage() {
 
                   {discountAmount > 0 && (
                     <div className="flex items-center justify-between text-emerald-600 font-medium">
-                      <span>Discount ({appliedDiscount?.code})</span>
+                      <span>Discount ({appliedCoupon?.code})</span>
                       <span>-{formatPrice(discountAmount)}</span>
                     </div>
                   )}
@@ -1466,7 +1523,9 @@ export default function CheckoutPage() {
                   <div className="flex items-center justify-between text-gray-600">
                     <span>
                       Shipping
-                      {selectedShippingMethod ? ` (${selectedShippingMethod.name})` : ""}
+                      {selectedShippingMethod
+                        ? ` (${selectedShippingMethod.name})`
+                        : ""}
                     </span>
                     <span className="font-semibold text-gray-900">
                       {effectiveShippingFee === 0
@@ -1490,8 +1549,17 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                {/* ── 4. Primary CTA: "Pay with [PayPal Logo] - Total" ── */}
+                {/* ── 4. Primary CTA: "Pay with [PayPal Logo] - Total" OR "Sign in to Order · Total" ── */}
                 <div className="mt-6">
+                  {submitError && (
+                    <div className="mb-4 p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2">
+                      <span className="font-semibold text-sm leading-none">
+                        ⚠️
+                      </span>
+                      <span className="leading-snug">{submitError}</span>
+                    </div>
+                  )}
+
                   <button
                     type="submit"
                     disabled={isSubmitting}
@@ -1502,22 +1570,37 @@ export default function CheckoutPage() {
                         <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         <span>Connecting to PayPal...</span>
                       </div>
+                    ) : !user ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <span>Sign in to Order</span>
+                        <span>·</span>
+                        <span>{formatPrice(finalTotal)}</span>
+                      </div>
                     ) : (
                       <>
                         <span>Pay with</span>
                         <div className="bg-white rounded-xs px-2.5 py-1 mb-1 flex items-center shadow-2xs">
                           <PayPalIcon className="h-4 sm:h-4.5 w-auto" />
                         </div>
+                        <span>· {formatPrice(finalTotal)}</span>
                       </>
                     )}
                   </button>
 
-                  <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-gray-400">
-                    <FiLock className="w-3 h-3 text-gray-400" />
-                    <span>
-                      Guaranteed safe and encrypted through the Payment
-                      Providers
-                    </span>
+                  <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-gray-500 text-center">
+                    {!user ? (
+                      <span>
+                        We&apos;ll save your order to your account and take you
+                        straight to payment.
+                      </span>
+                    ) : (
+                      <>
+                        <FiLock className="w-3 h-3 text-gray-400" />
+                        <span>
+                          Guaranteed safe and encrypted through PayPal
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

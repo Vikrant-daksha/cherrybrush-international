@@ -7,29 +7,32 @@ import Link from "next/link";
 import { FaCartShopping, FaXmark } from "react-icons/fa6";
 import { useCart } from "@/context/CartContext";
 import { useCurrency } from "@/context/CurrencyContext";
+import { getCloudinaryThumbnail } from "@/lib/imageLoader";
+import { slugify } from "@/lib/slug";
 
 export interface ColorSwatch {
   hex: string;
   label?: string;
 }
 
-export interface NailProductCardProps {
+export interface VerticalProductCardProps {
   id?: string;
   _id?: string;
   slug?: string;
   href?: string;
-  imageSrc: string;
+  imageSrc?: string;
   imageAlt?: string;
-  name: string;
-  collection: string;
-  style?: string; // e.g. "Glitter Ombre"
-  description: string;
-  price: string;
-  badge?: string; // e.g. "BEST SELLER"
-  rating?: number; // 0–5, supports halves
+  name?: string;
+  collection?: string;
+  style?: string;
+  description?: string;
+  price?: string | number;
+  originalPrice?: number;
+  badge?: string;
+  rating?: number;
   reviewCount?: number;
   colors?: ColorSwatch[];
-  extraColorsCount?: number; // e.g. 2 for "+2"
+  extraColorsCount?: number;
   shapes?: string[];
   lengths?: string[];
   sizes?: string[];
@@ -38,100 +41,85 @@ export interface NailProductCardProps {
   onAddToBag?: () => void;
   onWishlist?: () => void;
   onQuickView?: () => void;
+  product?: any;
 }
 
-function StarRating({ rating }: { rating: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => {
-        const fill = Math.min(Math.max(rating - (star - 1), 0), 1);
-        return (
-          <svg
-            key={star}
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            className="flex-shrink-0"
-          >
-            <defs>
-              <linearGradient
-                id={`star-fill-${star}`}
-                x1="0"
-                x2="1"
-                y1="0"
-                y2="0"
-              >
-                <stop offset={`${fill * 100}%`} stopColor="#c88389" />
-                <stop offset={`${fill * 100}%`} stopColor="#e8d9c0" />
-              </linearGradient>
-            </defs>
-            <polygon
-              points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
-              fill={`url(#star-fill-${star})`}
-              stroke="#c88389"
-              strokeWidth="1"
-            />
-          </svg>
-        );
-      })}
-    </div>
-  );
-}
+const DEFAULT_SHAPES = ["Almond", "Coffin", "Square", "Round"];
+const DEFAULT_LENGTHS = ["Short", "Medium", "Long"];
+const DEFAULT_SIZES = ["XS", "S", "M", "L"];
 
-export default function VerticalProductCard({
-  id,
-  _id,
-  slug,
-  href,
-  imageSrc,
-  imageAlt = "Nail Product",
-  name,
-  collection,
-  style: styleLabel,
-  description,
-  price,
-  badge,
-  rating = 5,
-  reviewCount = 0,
-  colors = [],
-  extraColorsCount = 0,
-  shapes = [],
-  lengths = [],
-  sizes = [],
-  packageType = "",
-  accentColor = "#c88389",
-  onAddToBag,
-  onWishlist,
-  onQuickView,
-}: NailProductCardProps) {
+export default function VerticalProductCard(props: VerticalProductCardProps) {
   const { addToCart } = useCart();
   const { formatPrice } = useCurrency();
-  const [wishlisted, setWishlisted] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
-  const displayedPrice = formatPrice(price);
+  const [mounted, setMounted] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Filter incoming variants to avoid ghost or empty strings
-  const validColors = (colors || []).filter(
-    (c) =>
-      c && (c.hex?.trim?.() || c.label?.trim?.() || (c as any).color?.trim?.()),
-  );
-  const availableShapes = (shapes || []).filter(
-    (s) => typeof s === "string" && s.trim().length > 0,
-  );
-  const availableLengths = (lengths || []).filter(
-    (l) => typeof l === "string" && l.trim().length > 0,
-  );
-  const availableSizes = (sizes || []).filter(
-    (sz) => typeof sz === "string" && sz.trim().length > 0,
+  // Support both flat props and nested `product` object
+  const target = props.product || props;
+  const prodId = target._id || target.id || props._id || props.id || "";
+  const prodName = target.name || props.name || "Press-On Nails";
+  const prodSlug = target.slug || (prodName ? slugify(prodName) : prodId);
+  const prodCollection =
+    target.collection || props.collection || "Press-On Set";
+  const prodBadge = target.badge || props.badge;
+
+  // Resolve numeric price
+  const rawPrice = target.price ?? props.price ?? 150;
+  const prodPrice =
+    typeof rawPrice === "number"
+      ? rawPrice
+      : parseFloat(String(rawPrice).replace(/[^0-9.]/g, "")) || 0;
+  const prodOriginalPrice =
+    target.originalPrice || props.originalPrice || Math.round(prodPrice * 1.18);
+
+  // Resolve image URL
+  const prodImg =
+    (target.images && target.images[0]) ||
+    target.imageSrc ||
+    target.image ||
+    props.imageSrc ||
+    "/product.png";
+
+  const productHref =
+    props.href || (prodSlug ? `/collection/${prodSlug}` : "/collection");
+
+  // Resolve variants
+  const targetColors = target.colors || props.colors || [];
+  const validColors = targetColors.filter(
+    (c: any) =>
+      c && (c.hex?.trim?.() || c.label?.trim?.() || c.color?.trim?.()),
   );
 
-  const [selectedColor, setSelectedColor] = useState(
+  const targetShapes = target.shapes || props.shapes;
+  const availableShapes =
+    targetShapes && targetShapes.length > 0
+      ? targetShapes.filter(
+          (s: any) => typeof s === "string" && s.trim().length > 0,
+        )
+      : DEFAULT_SHAPES;
+
+  const targetLengths = target.lengths || props.lengths;
+  const availableLengths =
+    targetLengths && targetLengths.length > 0
+      ? targetLengths.filter(
+          (l: any) => typeof l === "string" && l.trim().length > 0,
+        )
+      : DEFAULT_LENGTHS;
+
+  const targetSizes = target.sizes || props.sizes;
+  const availableSizes =
+    targetSizes && targetSizes.length > 0
+      ? targetSizes.filter(
+          (sz: any) => typeof sz === "string" && sz.trim().length > 0,
+        )
+      : DEFAULT_SIZES;
+
+  const [selectedColor] = useState(
     validColors[0]?.label || validColors[0]?.hex || "",
   );
 
@@ -150,44 +138,51 @@ export default function VerticalProductCard({
 
   useEffect(() => {
     if (!popupShape && availableShapes[0]) setPopupShape(availableShapes[0]);
-    if (!popupLength && availableLengths[0]) setPopupLength(availableLengths[0]);
+    if (!popupLength && availableLengths[0])
+      setPopupLength(availableLengths[0]);
     if (!popupSize && availableSizes[0]) setPopupSize(availableSizes[0]);
-  }, [availableShapes, availableLengths, availableSizes, popupShape, popupLength, popupSize]);
+  }, [
+    availableShapes,
+    availableLengths,
+    availableSizes,
+    popupShape,
+    popupLength,
+    popupSize,
+  ]);
 
-  const getDynamicHref = (baseHref?: string) => {
-    if (!baseHref) return "";
-    const params = new URLSearchParams();
-    if (selectedColor) params.set("shade", selectedColor);
-    const queryString = params.toString();
-    return queryString ? `${baseHref}?${queryString}` : baseHref;
-  };
-  const cardHref = getDynamicHref(href);
-
-  const handleOpenAddToCartModal = (e: React.MouseEvent) => {
+  const handleOpenQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setPopupShape((prev) => prev || availableShapes[0] || "");
     setPopupLength((prev) => prev || availableLengths[0] || "");
     setPopupSize((prev) => prev || availableSizes[0] || "");
     setPopupShade(
-      popupShade || selectedColor || validColors[0]?.label || validColors[0]?.hex || "",
+      popupShade ||
+        selectedColor ||
+        validColors[0]?.label ||
+        validColors[0]?.hex ||
+        "",
     );
     setIsModalOpen(true);
   };
 
   const handleConfirmAddToCart = () => {
     const finalShade =
-      popupShade || selectedColor || validColors[0]?.label || validColors[0]?.hex || undefined;
+      popupShade ||
+      selectedColor ||
+      validColors[0]?.label ||
+      validColors[0]?.hex ||
+      undefined;
     const finalShape = popupShape || availableShapes[0] || undefined;
     const finalLength = popupLength || availableLengths[0] || undefined;
     const finalSize = popupSize || availableSizes[0] || undefined;
 
     addToCart({
-      productId: _id || id || slug || name,
-      name: name,
-      price: parseFloat(String(price).replace(/[^0-9.]/g, "")) || 0,
-      image: imageSrc,
-      collection: collection,
+      productId: prodId || prodSlug,
+      name: prodName,
+      price: prodPrice,
+      image: prodImg,
+      collection: prodCollection,
       color: finalShade,
       shade: finalShade,
       shape: finalShape,
@@ -196,155 +191,157 @@ export default function VerticalProductCard({
       quantity: 1,
     });
     setIsModalOpen(false);
-    onAddToBag?.();
+    props.onAddToBag?.();
   };
-
-  const imageContent = (
-    <div className="relative w-full aspect-square overflow-hidden bg-[#fdf0f2] border-b border-b-[#f0c5d2] rounded-xl flex-shrink-0">
-      <Image
-        src={imageSrc}
-        alt={imageAlt}
-        fill
-        loading="eager"
-        priority
-        sizes="(max-width: 768px) 100vw, 20vw"
-        className="object-cover transition-transform duration-500 hover:scale-105"
-      />
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setWishlisted(!wishlisted);
-          onWishlist?.();
-        }}
-        className="absolute top-2 right-2 w-9 h-9 rounded-full border border-[#e8c0c8]/60 bg-white/70 backdrop-blur-sm flex items-center justify-center transition-all hover:scale-110 hover:border-[#c88389]/60 shadow-sm z-10"
-      >
-        <svg
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill={wishlisted ? "#c88389" : "none"}
-          stroke="#c88389"
-          strokeWidth="2"
-        >
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-        </svg>
-      </button>
-    </div>
-  );
 
   return (
     <>
       <div
-        className="flex flex-col rounded-2xl border border-[#f0c5d2] shadow-[0_8px_40px_rgba(160,100,120,0.10)] hover:shadow-[0_16px_56px_rgba(160,100,120,0.18)] transition-all duration-300 w-full h-full bg-white overflow-hidden p-2"
-        style={{ backdropFilter: "blur(8px)" }}
+        className="group relative flex flex-col bg-white rounded-[20px] overflow-hidden cursor-pointer hover:-translate-y-1 transition-all duration-300 w-full"
+        style={{
+          boxShadow:
+            "rgba(0, 0, 0, 0.06) 0px 1px 4px 0px, rgba(0, 0, 0, 0.04) 0px 0px 0px 1px",
+        }}
       >
-        {/* ── Product Image ── */}
-        {cardHref ? (
-          <Link href={cardHref} className="block">
-            {imageContent}
-          </Link>
-        ) : (
-          imageContent
-        )}
+        <Link
+          className="relative block overflow-hidden bg-zinc-50 shrink-0"
+          href={productHref}
+          style={{ aspectRatio: "10/12" }}
+        >
+          <Image
+            src={getCloudinaryThumbnail(prodImg, 400, 533)}
+            unoptimized
+            alt={prodName}
+            fill
+            sizes="(max-width: 768px) 50vw, 25vw"
+            className="object-cover group-hover:scale-102 transition-transform duration-500"
+          />
 
-        {/* ── Content Details ── */}
-        <div className="flex-1 flex flex-col justify-between px-4 py-4 bg-white">
-          <div>
-            {cardHref ? (
-              <Link
-                href={cardHref}
-                className="hover:opacity-80 transition-opacity block truncate"
+          {/* Gradient Overlay */}
+          <div className="absolute inset-x-0 bottom-0 h-28 pointer-events-none bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+          {/* Bestseller Badge (Commented out) */}
+          {/*
+          <div className="absolute top-3 left-3 z-10">
+            <span className="inline-flex items-center gap-1 bg-zinc-900 text-white text-[9px] font-bold uppercase tracking-[0.2em] px-2.5 py-1 rounded-full shadow-sm">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-2.5 h-2.5 fill-amber-400 text-amber-400"
               >
-                <p className="font-sans text-[10px] font-semibold tracking-[0.18em] uppercase text-[#c88389] mb-1.5 truncate">
-                  {collection}
-                </p>
-              </Link>
-            ) : (
-              <p className="font-sans text-[10px] font-semibold tracking-[0.18em] uppercase text-[#c88389] mb-1.5 truncate">
-                {collection}
-              </p>
-            )}
-
-            {cardHref ? (
-              <Link href={cardHref} className="block group/title">
-                <h2 className="text-lg md:text-xl font-medium tracking-wider text-[#3d2b1f] uppercase leading-snug line-clamp-2 group-hover/title:text-[#c88389] transition-colors">
-                  {name}
-                </h2>
-              </Link>
-            ) : (
-              <h2 className="text-lg md:text-xl font-medium tracking-wider text-[#3d2b1f] uppercase leading-snug line-clamp-2">
-                {name}
-              </h2>
-            )}
-
-            <div className="text-[12px] my-3 line-clamp-2">{description}</div>
-
-            {/* {validColors.length > 0 && (
-              <>
-                <div className="uppercase text-[10px] tracking-widest font-semibold text-[#d4747c]">
-                  Shades{" "}
-                </div>
-                <div className="min-h-9 flex items-center">
-                  <div className="flex items-center gap-3 py-2">
-                    {validColors.slice(0, 3).map((color, i) => {
-                      const colorKey = color.label || color.hex;
-                      const isSelected = selectedColor === colorKey;
-                      return (
-                        <button
-                          key={i}
-                          title={color.label || color.hex}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setSelectedColor(colorKey);
-                          }}
-                          className={`w-6 h-6 rounded-full border shadow-sm transition-all hover:scale-110 ${
-                            isSelected
-                              ? "ring-2 ring-[#c88389] border-[#c25d65] scale-105"
-                              : "border-[#eeb9c9] hover:border-[#c88389]"
-                          }`}
-                          style={{ backgroundColor: color.hex }}
-                        />
-                      );
-                    })}
-                    {validColors.length > 3 && (
-                      <div className="w-6 h-6 rounded-full bg-[#f0e0e5] border-2 border-white shadow-sm flex items-center justify-center">
-                        <span className="font-sans text-[10px] font-semibold text-[#a0604a]">
-                          +{validColors.length - 3}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </>
-            )} */}
-          </div>
-
-          {/* Price */}
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-xl md:text-2xl font-semibold text-[#3d2b1f] tracking-wide">
-              {displayedPrice}
+                <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path>
+              </svg>
+              Bestseller
             </span>
           </div>
+          */}
 
-          {/* Add to Cart Button */}
-          <div className="flex items-center gap-3 mt-4">
+          {/* Quick Add overlay button on hover */}
+          <div className="absolute inset-x-3 bottom-3 z-10 flex gap-2 opacity-0 group-hover:opacity-100 translate-y-3 group-hover:translate-y-0 transition-all duration-300">
             <button
-              onClick={handleOpenAddToCartModal}
-              className="flex-1 py-3 rounded-xl flex items-center justify-center border border-[#e8c0c8]/70 hover:border-[#c88389]/60 bg-white/70 backdrop-blur-sm transition-all hover:scale-[1.02] shadow-sm"
+              type="button"
+              onClick={handleOpenQuickAdd}
+              className="flex-1 h-10 rounded-xl bg-white/95 backdrop-blur-sm text-zinc-900 text-xs font-bold tracking-wide flex items-center justify-center gap-1.5 hover:bg-white transition-colors shadow-sm cursor-pointer"
             >
-              <FaCartShopping className="w-4 h-4 mr-2 text-[#c88389]" />
-              <span className="text-sm font-medium text-[#c88389]">
-                Add to Cart
-              </span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-3.5 h-3.5"
+              >
+                <path d="M16 10a4 4 0 0 1-8 0"></path>
+                <path d="M3.103 6.034h17.794"></path>
+                <path d="M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z"></path>
+              </svg>
+              Quick Add
             </button>
           </div>
+        </Link>
+
+        <div className="px-4 pt-3.5 pb-4 flex flex-col gap-2">
+          <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+            {prodCollection}
+          </p>
+          <Link className="block" href={productHref}>
+            <h3 className="text-[15px] font-semibold text-zinc-900 leading-snug line-clamp-2 hover:text-[#c88389] transition-colors">
+              {prodName}
+            </h3>
+          </Link>
+
+          {/* ── RATINGS (Commented out until comments/reviews system is implemented) ── */}
+          {/*
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-[2px]">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <span key={star} className="relative w-[11px] h-[11px]">
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="absolute inset-0 w-full h-full fill-amber-400"
+                  >
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                </span>
+              ))}
+            </div>
+            <span className="text-[11px] font-semibold text-zinc-700">
+              {props.rating || 4.8}
+            </span>
+            <span className="text-[10px] text-zinc-400">
+              ({props.reviewCount || 196})
+            </span>
+          </div>
+          */}
+
+          {/* ── PRICE & DISCOUNT ── */}
+          <div className="flex items-center gap-2 flex-wrap mt-0.5">
+            <span className="text-[15px] font-bold text-zinc-900 tracking-tight">
+              {formatPrice(prodPrice)}
+            </span>
+
+            {/* ── PERCENTAGE OFF & STRIKETHROUGH (Commented out until specific product discounts are implemented) ── */}
+            {/*
+            <span className="text-sm text-zinc-400 line-through font-medium">
+              {formatPrice(prodOriginalPrice)}
+            </span>
+            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md leading-none">
+              15% off
+            </span>
+            */}
+          </div>
+
+          {/* ── FREE DELIVERY & IN STOCK (Commented out for future implementation) ── */}
+          {/*
+          <p className="text-[10px] text-zinc-400 font-medium flex items-center gap-1 mt-0.5">
+            <svg
+              className="w-3 h-3 text-emerald-500 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <path d="M5 12l5 5L20 7"></path>
+            </svg>
+            Free delivery · In stock
+          </p>
+          */}
         </div>
       </div>
 
       {/* ══════════════════════════════════════════════
-         ADD TO CART QUICK-VIEW OVERLAY (PORTAL TO DOCUMENT.BODY)
+         QUICK ADD MODAL OVERLAY (PORTAL TO DOCUMENT.BODY)
       ══════════════════════════════════════════════ */}
       {isModalOpen &&
         mounted &&
@@ -364,60 +361,60 @@ export default function VerticalProductCard({
                 {/* ── Left: Large Product Image ── */}
                 <div className="relative w-full sm:w-[50%] aspect-[4/3] sm:aspect-auto flex-shrink-0 bg-[#fdf0f2]">
                   <Image
-                    src={imageSrc}
-                    alt={name}
+                    src={getCloudinaryThumbnail(prodImg, 800, 800)}
+                    alt={prodName}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 640px) 100vw, 280px"
+                    sizes="(max-width: 640px) 100vw, 400px"
                   />
-                  {badge && (
+                  {prodBadge && (
                     <span className="absolute top-3 left-3 text-[9px] font-bold uppercase tracking-widest bg-[#c87a8a] text-white px-2.5 py-1 rounded-full shadow">
-                      {badge}
+                      {prodBadge}
                     </span>
                   )}
                 </div>
 
                 {/* ── Right: Details & Selectors ── */}
                 <div className="flex-1 overflow-y-auto px-5 pt-5 pb-6 sm:px-7 sm:pt-7 sm:pb-7 flex flex-col gap-5 relative">
-                  {/* Close */}
+                  {/* Close Button */}
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#fdf0f2] hover:bg-[#f5d5dc] text-[#c87a8a] flex items-center justify-center transition-colors z-10"
+                    className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#fdf0f2] hover:bg-[#f5d5dc] text-[#c87a8a] flex items-center justify-center transition-colors z-10 cursor-pointer"
+                    title="Close"
                   >
                     <FaXmark className="w-3.5 h-3.5" />
                   </button>
 
-                  {/* Collection · Name · Rating · Price */}
+                  {/* Collection · Name · Price */}
                   <div>
                     <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-[#c88389] mb-1">
-                      {collection}
+                      {prodCollection}
                     </p>
                     <h3 className="text-xl sm:text-2xl font-medium text-[#3d2b1f] uppercase leading-snug pr-10 line-clamp-2">
-                      {name}
+                      {prodName}
                     </h3>
-                    {reviewCount > 0 && (
-                      <div className="flex items-center gap-1.5 mt-1.5">
-                        <StarRating rating={rating} />
-                        <span className="text-[11px] text-[#8a7060]">
-                          {rating.toFixed(1)} ({reviewCount})
-                        </span>
-                      </div>
-                    )}
+
                     <p className="text-2xl font-semibold text-[#3d2b1f] mt-2">
-                      {displayedPrice}
+                      {formatPrice(prodPrice)}
                     </p>
                   </div>
 
-                  {/* ── Selectors ── */}
+                  {/* ── Variant Selectors ── */}
                   <div className="space-y-4 flex-1">
+                    {/* Shape Selector */}
                     {availableShapes.length > 0 && (
                       <div>
                         <p className="text-[9px] font-bold uppercase tracking-widest text-[#a0604a] mb-2">
                           Shape
+                          {popupShape && (
+                            <span className="normal-case font-normal text-[#3d2b1f] ml-1">
+                              — {popupShape}
+                            </span>
+                          )}
                         </p>
                         <div className="flex flex-wrap gap-2">
-                          {availableShapes.map((shape) => {
+                          {availableShapes.map((shape: string) => {
                             const isSelected = popupShape === shape;
                             return (
                               <button
@@ -426,7 +423,7 @@ export default function VerticalProductCard({
                                 onClick={() =>
                                   setPopupShape(isSelected ? "" : shape)
                                 }
-                                className={`px-3.5 py-1.5 rounded-xl text-xs font-medium border-2 transition-all duration-150 ${
+                                className={`px-3.5 py-1.5 rounded-xl text-xs font-medium border-2 transition-all duration-150 cursor-pointer ${
                                   isSelected
                                     ? "bg-[#c87a8a] border-[#c87a8a] text-white shadow-sm"
                                     : "bg-white border-[#edd8de] text-[#7a6054] hover:border-[#c87a8a] hover:text-[#a0485a]"
@@ -440,13 +437,19 @@ export default function VerticalProductCard({
                       </div>
                     )}
 
+                    {/* Length Selector */}
                     {availableLengths.length > 0 && (
                       <div>
                         <p className="text-[9px] font-bold uppercase tracking-widest text-[#a0604a] mb-2">
                           Length
+                          {popupLength && (
+                            <span className="normal-case font-normal text-[#3d2b1f] ml-1">
+                              — {popupLength}
+                            </span>
+                          )}
                         </p>
                         <div className="flex flex-wrap gap-2">
-                          {availableLengths.map((len) => {
+                          {availableLengths.map((len: string) => {
                             const isSelected = popupLength === len;
                             return (
                               <button
@@ -455,7 +458,7 @@ export default function VerticalProductCard({
                                 onClick={() =>
                                   setPopupLength(isSelected ? "" : len)
                                 }
-                                className={`px-3.5 py-1.5 rounded-xl text-xs font-medium border-2 transition-all duration-150 ${
+                                className={`px-3.5 py-1.5 rounded-xl text-xs font-medium border-2 transition-all duration-150 cursor-pointer ${
                                   isSelected
                                     ? "bg-[#c87a8a] border-[#c87a8a] text-white shadow-sm"
                                     : "bg-white border-[#edd8de] text-[#7a6054] hover:border-[#c87a8a] hover:text-[#a0485a]"
@@ -469,13 +472,19 @@ export default function VerticalProductCard({
                       </div>
                     )}
 
+                    {/* Size Selector */}
                     {availableSizes.length > 0 && (
                       <div>
                         <p className="text-[9px] font-bold uppercase tracking-widest text-[#a0604a] mb-2">
                           Size
+                          {popupSize && (
+                            <span className="normal-case font-normal text-[#3d2b1f] ml-1">
+                              — {popupSize}
+                            </span>
+                          )}
                         </p>
                         <div className="flex flex-wrap gap-2">
-                          {availableSizes.map((sz) => {
+                          {availableSizes.map((sz: string) => {
                             const isSelected = popupSize === sz;
                             return (
                               <button
@@ -484,7 +493,7 @@ export default function VerticalProductCard({
                                 onClick={() =>
                                   setPopupSize(isSelected ? "" : sz)
                                 }
-                                className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-medium border-2 transition-all duration-150 ${
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-medium border-2 transition-all duration-150 cursor-pointer ${
                                   isSelected
                                     ? "bg-[#c87a8a] border-[#c87a8a] text-white shadow-sm"
                                     : "bg-white border-[#edd8de] text-[#7a6054] hover:border-[#c87a8a] hover:text-[#a0485a]"
@@ -498,6 +507,7 @@ export default function VerticalProductCard({
                       </div>
                     )}
 
+                    {/* Shade / Color Selector */}
                     {validColors.length > 0 && (
                       <div>
                         <p className="text-[9px] font-bold uppercase tracking-widest text-[#a0604a] mb-2">
@@ -509,7 +519,7 @@ export default function VerticalProductCard({
                           )}
                         </p>
                         <div className="flex items-center gap-2.5">
-                          {validColors.map((color, i) => {
+                          {validColors.map((color: any, i: number) => {
                             const colorKey = color.label || color.hex;
                             const isSelected = popupShade === colorKey;
                             return (
@@ -518,7 +528,7 @@ export default function VerticalProductCard({
                                 type="button"
                                 title={color.label || color.hex}
                                 onClick={() => setPopupShade(colorKey)}
-                                className={`w-7 h-7 rounded-full border-2 shadow-sm transition-all hover:scale-110 ${
+                                className={`w-7 h-7 rounded-full border-2 shadow-sm transition-all hover:scale-110 cursor-pointer ${
                                   isSelected
                                     ? "border-[#c25d65] ring-2 ring-[#c88389]/50 scale-110"
                                     : "border-[#edd8de] hover:border-[#c88389]"
@@ -532,25 +542,23 @@ export default function VerticalProductCard({
                     )}
                   </div>
 
-                  {/* ── CTA ── */}
+                  {/* ── Actions: Add to Cart & Full Details Link ── */}
                   <div className="space-y-3 pt-2">
                     <button
                       type="button"
                       onClick={handleConfirmAddToCart}
-                      className="w-full py-3.5 rounded-xl bg-[#c87a8a] hover:bg-[#b56878] active:scale-[0.98] text-white font-semibold text-sm uppercase tracking-wider shadow-[0_6px_20px_rgba(200,122,138,0.35)] hover:shadow-[0_8px_28px_rgba(200,122,138,0.45)] transition-all duration-200 flex items-center justify-center gap-2"
+                      className="w-full py-3.5 rounded-xl bg-[#c87a8a] hover:bg-[#b56878] active:scale-[0.98] text-white font-semibold text-sm uppercase tracking-wider shadow-[0_6px_20px_rgba(200,122,138,0.35)] hover:shadow-[0_8px_28px_rgba(200,122,138,0.45)] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <FaCartShopping className="w-4 h-4" />
                       Add to Cart
                     </button>
-                    {href && (
-                      <Link
-                        href={href}
-                        className="block text-center text-[12px] text-[#8a7060] hover:text-[#3d2b1f] underline-offset-2 hover:underline transition-colors"
-                        onClick={() => setIsModalOpen(false)}
-                      >
-                        View full details →
-                      </Link>
-                    )}
+                    <Link
+                      href={productHref}
+                      className="block text-center text-[12px] text-[#8a7060] hover:text-[#3d2b1f] underline-offset-2 hover:underline transition-colors"
+                      onClick={() => setIsModalOpen(false)}
+                    >
+                      View full details →
+                    </Link>
                   </div>
                 </div>
               </div>

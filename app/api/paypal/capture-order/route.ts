@@ -85,6 +85,15 @@ export async function POST(req: NextRequest) {
       if (isCompleted) {
         orderDoc.payment.paidAt = new Date();
         orderDoc.orderStatus = "paid";
+
+        if (orderDoc.pricing?.couponCode) {
+          try {
+            const { incrementCouponUsage } = await import("@/lib/couponService");
+            await incrementCouponUsage(orderDoc.pricing.couponCode);
+          } catch (e) {
+            console.warn("Could not increment coupon usage count:", e);
+          }
+        }
       }
 
       await orderDoc.save();

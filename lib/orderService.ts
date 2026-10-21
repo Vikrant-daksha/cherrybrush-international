@@ -9,6 +9,7 @@ import Order, {
 } from "@/lib/order.model";
 import { getStoreBaseCurrency } from "@/lib/storeSettings";
 import { getExchangeRates } from "@/lib/exchangeRates";
+import { validateAndCalculateCoupon } from "@/lib/couponService";
 
 export interface CreateOrderInputItem {
   productId: string;
@@ -35,6 +36,7 @@ export interface CreateOrderInput {
   shippingFee?: number;
   tax?: number;
   discount?: number;
+  couponCode?: string;
   idempotencyKey?: string;
   customerNotes?: string;
 }
@@ -201,9 +203,36 @@ export async function createOrderSnapshot(input: CreateOrderInput): Promise<IOrd
 
   // 4. Compute amounts in order currency
   const itemsSubtotalInCurrency = Number((baseSubtotal * exchangeRate).toFixed(2));
-  const shippingFee = Number((input.shippingFee || 0).toFixed(2));
+  let shippingFee = Number((input.shippingFee || 0).toFixed(2));
   const tax = Number((input.tax || 0).toFixed(2));
-  const discount = Number((input.discount || 0).toFixed(2));
+
+  let discount = Number((input.discount || 0).toFixed(2));
+  let validatedCouponCode: string | undefined = undefined;
+
+  // Server-Side Coupon Verification
+  if (input.couponCode) {
+    const couponEval = await validateAndCalculateCoupon({
+      code: input.couponCode,
+      items: itemSnapshots.map((item) => ({
+        productId: item.productId,
+        name: item.name,
+        price: Number((item.price * exchangeRate).toFixed(2)),
+        quantity: item.quantity,
+      })),
+      subtotal: itemsSubtotalInCurrency,
+      currency: targetCurrency,
+      userId: input.customer.userId,
+      userEmail: input.customer.email,
+    });
+
+    if (couponEval.isValid) {
+      discount = couponEval.discountAmount;
+      validatedCouponCode = couponEval.code;
+      if (couponEval.isFreeShipping) {
+        shippingFee = 0;
+      }
+    }
+  }
 
   const totalAmount = Number(
     Math.max(0, itemsSubtotalInCurrency + shippingFee + tax - discount).toFixed(2)
@@ -241,6 +270,7 @@ export async function createOrderSnapshot(input: CreateOrderInput): Promise<IOrd
       shippingFee,
       tax,
       discount,
+      couponCode: validatedCouponCode,
       totalAmount,
     },
     payment: {

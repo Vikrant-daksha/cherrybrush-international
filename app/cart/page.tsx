@@ -1,12 +1,28 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useCurrency } from "@/context/CurrencyContext";
-import { FiTrash2, FiArrowLeft, FiShoppingBag } from "react-icons/fi";
 import { getCloudinaryThumbnail } from "@/lib/imageLoader";
+import VerticalProductCard from "@/components/verticalProductCard/verticalProductCard";
+import { slugify } from "@/lib/slug";
+
+interface RecommendedProduct {
+  _id: string;
+  id?: string;
+  name: string;
+  slug?: string;
+  price: number;
+  originalPrice?: number;
+  collection?: string;
+  images?: string[];
+  image?: string;
+  rating?: number;
+  reviewCount?: number;
+  badge?: string;
+}
 
 export default function CartPage() {
   const {
@@ -14,24 +30,47 @@ export default function CartPage() {
     removeFromCart,
     updateQuantity,
     clearCart,
+    addToCart,
     totalPrice,
     totalItems,
     shippingMethods,
     selectedShippingMethod,
     setSelectedShippingMethod,
     shippingFee,
+    appliedCoupon,
+    applyCoupon,
+    removeCoupon,
+    couponError,
+    setCouponError,
+    isApplyingCoupon,
   } = useCart();
   const { formatPrice } = useCurrency();
 
   const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
-  const [couponDiscountRate, setCouponDiscountRate] = useState<number>(0);
-  const [couponError, setCouponError] = useState<string | null>(null);
+  const [recommendations, setRecommendations] = useState<RecommendedProduct[]>(
+    [],
+  );
 
-  // Dynamic shipping calculation driven by MongoDB
-  const discount = Math.round(totalPrice * couponDiscountRate);
+  // Fetch real products for "You Might Also Like" section
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then((data) => {
+        if (
+          data?.products &&
+          Array.isArray(data.products) &&
+          data.products.length > 0
+        ) {
+          setRecommendations(data.products.slice(0, 4));
+        }
+      })
+      .catch((err) => console.error("Failed to load recommendations:", err));
+  }, []);
+
+  // Dynamic shipping and discount calculations
+  const discount = appliedCoupon ? appliedCoupon.discountAmount : 0;
   const isFreeShipping =
-    appliedCoupon === "FREESHIP" || (selectedShippingMethod?.isFree ?? false);
+    appliedCoupon?.isFreeShipping || (selectedShippingMethod?.isFree ?? false);
   const currentShippingCost =
     items.length === 0
       ? 0
@@ -43,238 +82,304 @@ export default function CartPage() {
   const shipping = currentShippingCost;
   const finalTotal = Math.max(0, totalPrice - discount + shipping);
 
-  const handleApplyCoupon = () => {
-    const trimmed = couponCode.trim().toUpperCase();
-    if (!trimmed) return;
+  const cartEmpty = items.length === 0;
 
-    if (
-      trimmed === "CHERRY10" ||
-      trimmed === "WELCOME10" ||
-      trimmed === "SAVE10"
-    ) {
-      setAppliedCoupon(trimmed);
-      setCouponDiscountRate(0.1);
-      setCouponError(null);
-      setCouponCode("");
-    } else if (trimmed === "CHERRY20" || trimmed === "SAVE20") {
-      setAppliedCoupon(trimmed);
-      setCouponDiscountRate(0.2);
-      setCouponError(null);
-      setCouponCode("");
-    } else if (trimmed === "FREESHIP") {
-      setAppliedCoupon(trimmed);
-      setCouponDiscountRate(0);
-      setCouponError(null);
-      setCouponCode("");
-    } else {
-      setAppliedCoupon(trimmed);
-      setCouponDiscountRate(0.1);
-      setCouponError(null);
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    const res = await applyCoupon(couponCode);
+    if (res.success) {
       setCouponCode("");
     }
   };
 
   const handleRemoveCoupon = () => {
-    setAppliedCoupon(null);
-    setCouponDiscountRate(0);
-    setCouponError(null);
+    removeCoupon();
+    setCouponCode("");
   };
 
+  // Fallback items if recommendations are still loading or empty
+  const displayRecommendations: RecommendedProduct[] =
+    recommendations.length > 0
+      ? recommendations
+      : [
+          {
+            _id: "rec1",
+            name: "Cherry Blossom Pearl Set",
+            slug: "cherry-blossom-pearl-set",
+            price: 200,
+            originalPrice: 235,
+            collection: "Handcrafted · Almond",
+            image: "/product.png",
+            rating: 4.8,
+            reviewCount: 196,
+            badge: "Bestseller",
+          },
+          {
+            _id: "rec2",
+            name: "French Tip Luxe Oval",
+            slug: "french-tip-luxe-oval",
+            price: 220,
+            originalPrice: 259,
+            collection: "Classic · Oval",
+            image: "/product.png",
+            rating: 5.0,
+            reviewCount: 197,
+            badge: "Bestseller",
+          },
+          {
+            _id: "rec3",
+            name: "Velvet Rose Chrome",
+            slug: "velvet-rose-chrome",
+            price: 110,
+            originalPrice: 129,
+            collection: "Metallic · Coffin",
+            image: "/product.png",
+            rating: 4.5,
+            reviewCount: 198,
+            badge: "Bestseller",
+          },
+          {
+            _id: "rec4",
+            name: "Nude Glaze Shimmer",
+            slug: "nude-glaze-shimmer",
+            price: 130,
+            originalPrice: 153,
+            collection: "Minimal · Square",
+            image: "/product.png",
+            rating: 4.7,
+            reviewCount: 199,
+            badge: "Bestseller",
+          },
+        ];
+
   return (
-    <div className="h-full pt-15 bg-[#fafaf7] py-12 px-4 sm:px-6 lg:px-8 text-[#3d2b1f]">
-      <div className="max-w-4xl mx-auto">
-        {/* Navigation & Header */}
-        <div className="mb-8 mt-10">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-xs font-semibold text-[#8a7060] hover:text-[#c88389] transition-colors mb-4"
-          >
-            <FiArrowLeft className="w-4 h-4" />
-            Continue Shopping
-          </Link>
-          <div className="flex items-center justify-between border-b border-[#f0e0e5] pb-4">
-            <h1 className="text-3xl font-bold tracking-tight text-[#3d2b1f]">
-              Shopping Bag ({totalItems})
-            </h1>
-            {items.length > 0 && (
-              <button
-                type="button"
-                onClick={clearCart}
-                className="text-xs text-[#8a7060] hover:text-red-600 transition-colors cursor-pointer"
-              >
-                Clear all
-              </button>
-            )}
-          </div>
+    <main className="flex-1 min-h-screen bg-zinc-50/50 pt-20 sm:pt-24 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-xl font-semibold text-zinc-900">
+            Shopping Cart{" "}
+            <span className="text-zinc-400 font-normal text-base">
+              ({totalItems} {totalItems === 1 ? "item" : "items"})
+            </span>
+          </h1>
+          {!cartEmpty && (
+            <button
+              onClick={clearCart}
+              className="text-sm text-zinc-500 hover:text-red-500 transition-colors font-medium cursor-pointer"
+            >
+              Clear Cart
+            </button>
+          )}
         </div>
 
-        {items.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-[#f0e0e5] p-12 text-center shadow-xs">
-            <div className="w-16 h-16 rounded-full bg-[#fdf0f2] border border-[#e8c0c8] flex items-center justify-center text-2xl text-[#c88389] mx-auto mb-4">
-              <FiShoppingBag className="w-8 h-8" />
+        {cartEmpty ? (
+          /* Empty State */
+          <div className="bg-white rounded-2xl border border-zinc-200 p-12 text-center my-6 shadow-xs">
+            <div className="w-16 h-16 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400 mx-auto mb-4">
+              <svg
+                className="w-8 h-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
             </div>
-            <h2 className="text-xl font-bold text-[#3d2b1f] mb-2">
-              Your bag is empty
+            <h2 className="text-lg font-bold text-zinc-900 mb-1">
+              Your cart is empty
             </h2>
-            <p className="text-sm text-[#6b4f3a]/70 mb-6 max-w-sm mx-auto">
-              You haven't added any handcrafted press-on sets to your cart yet.
+            <p className="text-sm text-zinc-500 mb-6 max-w-sm mx-auto">
+              Looks like you haven&apos;t added any handcrafted press-on sets to
+              your cart yet.
             </p>
             <Link
-              href="/"
-              className="inline-block px-8 py-3 rounded-xl bg-[#c88389] hover:bg-[#b57278] text-white text-xs font-bold uppercase tracking-wider transition-all shadow-sm"
+              href="/collection"
+              className="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-semibold transition-all active:scale-95"
             >
-              Explore Collection
+              Start Shopping
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Items List */}
-            <div className="lg:col-span-7 bg-white rounded-2xl border border-[#f0e0e5] p-6 shadow-xs divide-y divide-[#f5e6e8]">
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="py-5 first:pt-0 last:pb-0 flex gap-4"
-                >
-                  <div className="relative w-22 h-22 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border border-[#e8c0c8] bg-[#fdf0f2] shrink-0">
-                    <Image
-                      src={getCloudinaryThumbnail(item.image, 240, 240)}
-                      unoptimized
-                      alt={item.name}
-                      fill
-                      sizes="96px"
-                      className="object-cover"
-                    />
-                  </div>
+          /* Grid: 2 Columns on Left (Items), 1 Column on Right (Summary) */
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column: Cart Items List */}
+            <div className="lg:col-span-2 space-y-3">
+              {items.map((item) => {
+                const itemSlug = item.name ? slugify(item.name) : item.productId;
+                const itemHref = itemSlug ? `/collection/${itemSlug}` : "/collection";
 
-                  <div className="flex-1 min-w-0 flex flex-col justify-between">
-                    <div>
+                return (
+                  <div
+                    key={item.id}
+                    className="flex gap-4 p-4 bg-white rounded-2xl border border-zinc-200 hover:shadow-md transition-all duration-200"
+                  >
+                    <Link className="shrink-0" href={itemHref}>
+                      <div className="relative w-24 h-24 sm:w-30 sm:h-30 rounded-xl overflow-hidden bg-zinc-50 border border-zinc-200">
+                        <Image
+                          src={getCloudinaryThumbnail(item.image, 240, 240)}
+                          unoptimized
+                          alt={item.name}
+                          fill
+                          sizes="112px"
+                          className="object-cover"
+                        />
+                      </div>
+                    </Link>
+
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <h3 className="text-base font-bold text-[#3d2b1f] line-clamp-1">
-                          {item.name}
-                        </h3>
-                        <span className="font-bold text-base text-[#3d2b1f] shrink-0">
-                          {formatPrice(item.price * item.quantity)}
-                        </span>
-                      </div>
-
-                      {/* Attributes: Line 1 = Size & Length | Line 2 = Shape & Color */}
-                      <div className="mt-1 space-y-0.5 text-xs text-[#6b4f3a]/80">
-                        {/* 1st Line: Size and Length */}
-                        {(item.size || item.length) && (
-                          <div className="flex items-center gap-1.5 leading-tight">
-                            {item.size && (
-                              <span>
-                                Size:{" "}
-                                <span className="font-semibold text-[#3d2b1f]">
-                                  {item.size}
-                                </span>
-                              </span>
-                            )}
-                            {item.size && item.length && (
-                              <span className="text-[#dcc9a8]">·</span>
-                            )}
-                            {item.length && (
-                              <span>
-                                Length:{" "}
-                                <span className="font-semibold text-[#3d2b1f]">
-                                  {item.length}
-                                </span>
-                              </span>
-                            )}
-                          </div>
-                        )}
-
-                        {/* 2nd Line: Shape and Color */}
-                        {(item.shape || item.shade || item.color) && (
-                          <div className="flex items-center gap-1.5 leading-tight">
-                            {item.shape && (
-                              <span>
-                                Shape:{" "}
-                                <span className="font-semibold text-[#3d2b1f]">
-                                  {item.shape}
-                                </span>
-                              </span>
-                            )}
-                            {item.shape && (item.shade || item.color) && (
-                              <span className="text-[#dcc9a8]">·</span>
-                            )}
-                            {(item.shade || item.color) && (
-                              <span className="inline-flex items-center gap-1">
-                                Color:
-                                {(item.shade || item.color)?.startsWith("#") ? (
-                                  <span
-                                    className="w-2.5 h-2.5 rounded-full inline-block border border-black/10 shrink-0"
-                                    style={{
-                                      backgroundColor: item.shade || item.color,
-                                    }}
-                                  />
-                                ) : null}
-                                <span className="font-semibold text-[#3d2b1f]">
-                                  {(item.shade || item.color)?.startsWith("#")
-                                    ? item.shade || item.color
-                                    : item.shade || item.color}
-                                </span>
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="mt-1 font-bold text-sm text-[#3d2b1f]">
-                        {formatPrice(item.price)}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2.5 mt-2">
-                      <div className="inline-flex items-center border border-[#e8c0c8] rounded-xl bg-white px-1 py-0.5 shadow-2xs">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updateQuantity(item.id, item.quantity - 1)
-                          }
-                          className="w-6 h-6 flex items-center justify-center text-xs font-semibold text-[#3d2b1f] hover:bg-[#fdf0f2] rounded-lg transition-colors cursor-pointer"
-                        >
-                          -
-                        </button>
-                        <span className="w-7 text-center text-xs font-bold text-[#3d2b1f]">
-                          {item.quantity}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updateQuantity(item.id, item.quantity + 1)
-                          }
-                          className="w-6 h-6 flex items-center justify-center text-xs font-semibold text-[#3d2b1f] hover:bg-[#fdf0f2] rounded-lg transition-colors cursor-pointer"
-                        >
-                          +
-                        </button>
+                        <div className="min-w-0">
+                          <Link
+                            className="text-sm font-semibold text-zinc-900 hover:text-[#c88389] transition-colors line-clamp-2"
+                            href={itemHref}
+                          >
+                            {item.name}
+                          </Link>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          {item.collection && (
+                            <span className="text-xs text-zinc-500">
+                              {item.collection}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-3 flex-wrap tracking-wider">
+                          {item.size && (
+                            <span className="text-[10px] px-2 py-0.5 bg-[#c87a8a] text-white rounded-sm font-semibold">
+                              Size: {item.size}
+                            </span>
+                          )}
+                          {item.length && (
+                            <span className="text-[10px] px-2 py-0.5 bg-[#c87a8a] text-white rounded-sm font-semibold">
+                              Length: {item.length}
+                            </span>
+                          )}
+                          {item.shape && (
+                            <span className="text-[10px] px-2 py-0.5 bg-[#c87a8a] text-white rounded-sm font-semibold">
+                              Shape: {item.shape}
+                            </span>
+                          )}
+                          {(item.color || item.shade) && (
+                            <span className="text-[10px] px-2 py-0.5 bg-[#c87a8a] text-white rounded-sm font-semibold inline-flex items-center gap-1">
+                              {(item.color || item.shade)?.startsWith("#") && (
+                                <span
+                                  className="w-2 h-2 rounded-full inline-block border border-black/10 shrink-0"
+                                  style={{
+                                    backgroundColor: item.color || item.shade,
+                                  }}
+                                />
+                              )}
+                              Color: {item.color || item.shade}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <button
-                        type="button"
                         onClick={() => removeFromCart(item.id)}
-                        className="p-1.5 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                        title="Remove item"
+                        className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-red-50 hover:text-red-500 transition-all cursor-pointer"
+                        aria-label="Remove"
                       >
-                        <FiTrash2 className="w-4 h-4 text-red-500" />
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                          <path d="M10 11v6"></path>
+                          <path d="M14 11v6"></path>
+                          <path d="M9 6V4h6v2"></path>
+                        </svg>
                       </button>
+                    </div>
+
+                    <div className="flex items-center justify-between mt-3">
+                      {/* Stepper */}
+                      <div className="flex items-center border border-zinc-200 rounded-xl overflow-hidden h-9 bg-white">
+                        <button
+                          onClick={() =>
+                            updateQuantity(item.id, item.quantity - 1)
+                          }
+                          className="w-9 h-full flex items-center justify-center text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors cursor-pointer"
+                        >
+                          <svg
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                          >
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                          </svg>
+                        </button>
+                        <span className="w-9 text-center text-sm font-medium text-zinc-900">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() =>
+                            updateQuantity(item.id, item.quantity + 1)
+                          }
+                          className="w-9 h-full flex items-center justify-center text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors cursor-pointer"
+                        >
+                          <svg
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                          >
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                          </svg>
+                        </button>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-zinc-900">
+                          {formatPrice(item.price * item.quantity)}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
+
+              <div className="flex items-center justify-between pt-2">
+                <Link
+                  className="text-sm text-zinc-900 hover:text-[#c88389] font-medium flex items-center gap-1.5 transition-colors"
+                  href="/collection"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="m15 18-6-6 6-6"></path>
+                  </svg>
+                  Continue Shopping
+                </Link>
+              </div>
             </div>
 
-            {/* Summary Card */}
-            <div className="lg:col-span-5 bg-white rounded-2xl border border-[#f0e0e5] p-6 shadow-xs space-y-4">
-              <h2 className="text-lg font-bold text-[#3d2b1f]">
-                Order Summary
-              </h2>
+            {/* Right Column: Order Summary & Assurances */}
+            <div className="space-y-4">
+              {/* Order Summary Card */}
+              <div className="bg-white rounded-2xl border border-zinc-200 p-5 shadow-xs">
+                <h2 className="text-base font-semibold text-zinc-900 mb-4">
+                  Order Summary
+                </h2>
 
-              {/* Coupon input */}
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
+                <div className="flex gap-2 mb-4">
                   <input
-                    type="text"
+                    placeholder="Coupon code"
+                    className="flex-1 py-2 px-3.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-zinc-400 focus:bg-white transition-all uppercase"
                     value={couponCode}
                     onChange={(e) => {
                       setCouponCode(e.target.value);
@@ -283,150 +388,155 @@ export default function CartPage() {
                     onKeyDown={(e) => {
                       if (e.key === "Enter") handleApplyCoupon();
                     }}
-                    placeholder="Coupon code"
-                    className="flex-1 bg-white border border-[#e8c0c8] rounded-xl px-3.5 py-2.5 text-xs text-[#3d2b1f] placeholder-[#a88a6a]/60 focus:outline-none focus:border-[#c88389] transition-all"
                   />
                   <button
-                    type="button"
                     onClick={handleApplyCoupon}
-                    className="px-5 py-2.5 rounded-xl border border-[#e8c0c8] bg-white text-xs font-semibold text-[#3d2b1f] hover:bg-[#c88389] hover:text-white hover:border-[#c88389] active:scale-95 transition-all cursor-pointer"
+                    disabled={isApplyingCoupon}
+                    className="bg-zinc-100 hover:bg-zinc-200 text-zinc-900 font-medium px-4 py-2 text-sm rounded-xl transition-colors cursor-pointer disabled:opacity-60 shrink-0"
                   >
-                    Apply
+                    {isApplyingCoupon ? "Applying..." : "Apply"}
                   </button>
                 </div>
 
                 {couponError && (
-                  <p className="text-[11px] text-red-500 pl-1">{couponError}</p>
+                  <p className="text-xs text-red-500 mb-3 -mt-2 pl-1">
+                    {couponError}
+                  </p>
                 )}
+
                 {appliedCoupon && (
-                  <div className="flex items-center justify-between bg-[#fdf0f2] border border-[#e8c0c8] rounded-lg px-2.5 py-1 text-[11px] text-[#3d2b1f]">
-                    <span className="flex items-center gap-1.5">
-                      <span className="text-[#c88389] font-bold">✓</span>
-                      Coupon{" "}
-                      <strong className="font-semibold text-[#c88389]">
-                        {appliedCoupon}
-                      </strong>{" "}
-                      applied!
+                  <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-3 py-2 text-xs text-green-800 mb-3 -mt-2">
+                    <span className="font-medium">
+                      ✓ Coupon <strong>{appliedCoupon.code}</strong> applied!
                     </span>
                     <button
-                      type="button"
                       onClick={handleRemoveCoupon}
-                      className="text-xs text-[#8a7060] hover:text-red-500 font-bold ml-2 cursor-pointer"
+                      className="text-xs text-zinc-400 hover:text-red-500 font-bold ml-2 cursor-pointer"
                     >
                       ✕
                     </button>
                   </div>
                 )}
-              </div>
 
-              {/* Shipping Method Selector from Database */}
-              {shippingMethods.length > 1 && items.length > 0 && (
-                <div className="pt-2 space-y-1.5">
-                  <div className="flex items-center justify-between text-[11px] font-semibold text-[#8a7060]">
-                    <span>Shipping Method:</span>
-                    {selectedShippingMethod?.estimatedDelivery?.label && (
-                      <span className="text-[10px] text-[#c88389]">
-                        {selectedShippingMethod.estimatedDelivery.label}
-                      </span>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-1 gap-2">
-                    {shippingMethods.map((method) => {
-                      const isSelected =
-                        selectedShippingMethod?.id === method.id;
-                      const methodCost =
-                        method.isFree || appliedCoupon === "FREESHIP"
-                          ? 0
-                          : method.price;
-                      return (
-                        <button
-                          key={method.id}
-                          type="button"
-                          onClick={() => setSelectedShippingMethod(method)}
-                          className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                            isSelected
-                              ? "border-[#c88389] bg-[#fdf0f2] shadow-xs"
-                              : "border-[#e8c0c8]/60 bg-white hover:border-[#c88389]/60"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between text-xs font-semibold text-[#3d2b1f]">
-                            <span className="truncate pr-1">{method.name}</span>
-                            <span
-                              className={`shrink-0 ${
-                                methodCost === 0
-                                  ? "text-[#c88389] font-bold"
-                                  : "text-[#3d2b1f]"
-                              }`}
-                            >
-                              {methodCost === 0
-                                ? "FREE"
-                                : formatPrice(methodCost)}
-                            </span>
-                          </div>
-                          {method.carrier && (
-                            <p className="text-[10px] text-[#8a7060]/75 truncate mt-0.5">
-                              {method.carrier}
-                            </p>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Cost breakdown */}
-              <div className="space-y-2 pt-2 text-xs text-[#6b4f3a]">
-                <div className="flex items-center justify-between">
-                  <span>Subtotal</span>
-                  <span className="font-semibold text-sm text-[#3d2b1f]">
-                    {formatPrice(totalPrice)}
-                  </span>
-                </div>
-
-                {discount > 0 && (
-                  <div className="flex items-center justify-between text-[#c88389]">
-                    <span>Discount ({appliedCoupon})</span>
-                    <span className="font-semibold text-sm">
-                      -{formatPrice(discount)}
-                    </span>
+                {/* Shipping Method Selector if multiple options */}
+                {shippingMethods.length > 1 && (
+                  <div className="space-y-2 mb-4 pt-2 border-t border-zinc-100">
+                    <div className="flex items-center justify-between text-xs font-semibold text-zinc-700">
+                      <span>Shipping Method:</span>
+                      {selectedShippingMethod?.estimatedDelivery?.label && (
+                        <span className="text-[11px] text-zinc-500">
+                          {selectedShippingMethod.estimatedDelivery.label}
+                        </span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 gap-1.5">
+                      {shippingMethods.map((method) => {
+                        const isSelected =
+                          selectedShippingMethod?.id === method.id;
+                        const methodCost =
+                          method.isFree || appliedCoupon?.isFreeShipping
+                            ? 0
+                            : method.price;
+                        return (
+                          <button
+                            key={method.id}
+                            type="button"
+                            onClick={() => setSelectedShippingMethod(method)}
+                            className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                              isSelected
+                                ? "border-zinc-900 bg-zinc-50 shadow-xs"
+                                : "border-zinc-200 bg-white hover:border-zinc-300"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between text-xs font-medium text-zinc-900">
+                              <span className="truncate pr-1">
+                                {method.name}
+                              </span>
+                              <span
+                                className={`shrink-0 ${
+                                  methodCost === 0
+                                    ? "text-green-600 font-bold"
+                                    : "text-zinc-900"
+                                }`}
+                              >
+                                {methodCost === 0
+                                  ? "FREE"
+                                  : formatPrice(methodCost)}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
-                <div className="flex items-center justify-between">
-                  <span>
-                    Shipping
-                    {selectedShippingMethod
-                      ? ` (${selectedShippingMethod.name})`
-                      : ""}
-                  </span>
-                  <span className="font-semibold text-sm text-[#3d2b1f]">
-                    {shipping === 0 ? "FREE" : formatPrice(shipping)}
-                  </span>
+                <div className="space-y-2.5 text-sm border-t border-zinc-200 pt-4">
+                  <div className="flex justify-between text-zinc-500">
+                    <span>
+                      Subtotal ({totalItems}{" "}
+                      {totalItems === 1 ? "item" : "items"})
+                    </span>
+                    <span className="font-medium text-zinc-900">
+                      {formatPrice(totalPrice)}
+                    </span>
+                  </div>
+
+                  {discount > 0 && (
+                    <div className="flex justify-between text-red-600">
+                      <span>Discount ({appliedCoupon?.code})</span>
+                      <span className="font-medium">
+                        -{formatPrice(discount)}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between text-zinc-500">
+                    <span>Shipping</span>
+                    <span className="font-medium text-zinc-900">
+                      {shipping === 0 ? "FREE" : formatPrice(shipping)}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between font-bold text-base text-zinc-900 pt-2 border-t border-zinc-200">
+                    <span>Total</span>
+                    <span>{formatPrice(finalTotal)}</span>
+                  </div>
                 </div>
+
+                <Link
+                  href="/checkout"
+                  className="w-full mt-5 py-3.5 bg-zinc-900 hover:bg-zinc-800 active:scale-[0.99] text-white font-semibold text-sm rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
+                >
+                  Proceed to Checkout
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M5 12h14"></path>
+                    <path d="m12 5 7 7-7 7"></path>
+                  </svg>
+                </Link>
               </div>
-
-              <div className="border-t border-[#f0e0e5] pt-2" />
-
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-base text-[#3d2b1f]">
-                  Total
-                </span>
-                <span className="font-bold text-xl text-[#3d2b1f]">
-                  {formatPrice(finalTotal)}
-                </span>
-              </div>
-
-              <Link
-                href="/checkout"
-                className="w-full py-3.5 rounded-xl bg-[#3d2b1f] hover:bg-[#281b13] active:scale-[0.99] text-white text-sm font-bold tracking-wide shadow-md transition-all flex items-center justify-center cursor-pointer"
-              >
-                Checkout
-              </Link>
             </div>
           </div>
         )}
+
+        {/* You Might Also Like Section */}
+        <div className="mt-14 pt-10 border-t border-zinc-200">
+          <h3 className="text-base font-semibold text-zinc-900 mb-5">
+            You Might Also Like
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {displayRecommendations.map((prod) => (
+              <VerticalProductCard key={prod._id} product={prod} />
+            ))}
+          </div>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

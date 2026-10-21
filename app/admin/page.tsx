@@ -15,9 +15,9 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const resolvedParams = searchParams ? await searchParams : undefined;
   const tab = resolvedParams?.tab;
 
-  const validTabs = ["orders", "settings", "users", "products"] as const;
+  const validTabs = ["orders", "settings", "users", "products", "coupons"] as const;
   const initialTab = validTabs.includes(tab as any)
-    ? (tab as "orders" | "settings" | "users" | "products")
+    ? (tab as "orders" | "settings" | "users" | "products" | "coupons")
     : "orders";
 
   return <AdminDashboardClient admin={admin} initialTab={initialTab} />;

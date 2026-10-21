@@ -5,12 +5,14 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useCurrency } from "@/context/CurrencyContext";
-import { FiTrash2 } from "react-icons/fi";
+import { useAuth } from "@/context/AuthContext";
+import { FiTrash2, FiX } from "react-icons/fi";
 import { CiShoppingTag } from "react-icons/ci";
 import { getCloudinaryThumbnail } from "@/lib/imageLoader";
 
 export default function CartDrawer() {
   const router = useRouter();
+  const { user, openAuthModal } = useAuth();
   const {
     items,
     isCartOpen,
@@ -24,21 +26,24 @@ export default function CartDrawer() {
     selectedShippingMethod,
     setSelectedShippingMethod,
     shippingFee,
+    appliedCoupon,
+    applyCoupon,
+    removeCoupon,
+    couponError,
+    setCouponError,
+    isApplyingCoupon,
   } = useCart();
   const { formatPrice } = useCurrency();
 
-  // Coupon state
+  // Coupon input state
   const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
-  const [couponDiscountRate, setCouponDiscountRate] = useState<number>(0);
-  const [couponError, setCouponError] = useState<string | null>(null);
 
   if (!isCartOpen) return null;
 
-  // Shipping & discount calculations driven directly by MongoDB
-  const discount = Math.round(totalPrice * couponDiscountRate);
+  // Shipping & discount calculations driven directly by MongoDB & unified coupon engine
+  const discount = appliedCoupon ? appliedCoupon.discountAmount : 0;
   const isFreeShipping =
-    appliedCoupon === "FREESHIP" || (selectedShippingMethod?.isFree ?? false);
+    appliedCoupon?.isFreeShipping || (selectedShippingMethod?.isFree ?? false);
   const currentShippingCost =
     items.length === 0
       ? 0
@@ -50,42 +55,17 @@ export default function CartDrawer() {
   const shipping = currentShippingCost;
   const finalTotal = Math.max(0, totalPrice - discount + shipping);
 
-  const handleApplyCoupon = () => {
-    const trimmed = couponCode.trim().toUpperCase();
-    if (!trimmed) return;
-
-    if (
-      trimmed === "CHERRY10" ||
-      trimmed === "WELCOME10" ||
-      trimmed === "SAVE10"
-    ) {
-      setAppliedCoupon(trimmed);
-      setCouponDiscountRate(0.1);
-      setCouponError(null);
-      setCouponCode("");
-    } else if (trimmed === "CHERRY20" || trimmed === "SAVE20") {
-      setAppliedCoupon(trimmed);
-      setCouponDiscountRate(0.2);
-      setCouponError(null);
-      setCouponCode("");
-    } else if (trimmed === "FREESHIP") {
-      setAppliedCoupon(trimmed);
-      setCouponDiscountRate(0);
-      setCouponError(null);
-      setCouponCode("");
-    } else {
-      // Default demo coupon gives 10%
-      setAppliedCoupon(trimmed);
-      setCouponDiscountRate(0.1);
-      setCouponError(null);
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    const res = await applyCoupon(couponCode);
+    if (res.success) {
       setCouponCode("");
     }
   };
 
   const handleRemoveCoupon = () => {
-    setAppliedCoupon(null);
-    setCouponDiscountRate(0);
-    setCouponError(null);
+    removeCoupon();
+    setCouponCode("");
   };
 
   const handleViewFullCart = () => {
@@ -117,7 +97,7 @@ export default function CartDrawer() {
               className="w-8 h-8 rounded-full bg-white border border-[#e8c0c8] text-[#3d2b1f] flex items-center justify-center font-bold text-sm hover:bg-[#c88389] hover:text-white hover:border-[#c88389] transition-all cursor-pointer"
               aria-label="Close cart"
             >
-              ✕
+              <FiX />
             </button>
           </div>
 
@@ -313,9 +293,10 @@ export default function CartDrawer() {
                   <button
                     type="button"
                     onClick={handleApplyCoupon}
-                    className="px-5 py-2.5 rounded-xl border border-[#e8c0c8] bg-white text-xs font-semibold text-[#3d2b1f] hover:bg-[#c88389] hover:text-white hover:border-[#c88389] active:scale-95 transition-all cursor-pointer"
+                    disabled={isApplyingCoupon}
+                    className="px-5 py-2.5 rounded-xl border border-[#e8c0c8] bg-white text-xs font-semibold text-[#3d2b1f] hover:bg-[#c88389] hover:text-white hover:border-[#c88389] active:scale-95 transition-all cursor-pointer disabled:opacity-60"
                   >
-                    Apply
+                    {isApplyingCoupon ? "Applying..." : "Apply"}
                   </button>
                 </div>
 
@@ -328,7 +309,7 @@ export default function CartDrawer() {
                       <span className="text-[#c88389] font-bold">✓</span>
                       Coupon{" "}
                       <strong className="font-semibold text-[#c88389]">
-                        {appliedCoupon}
+                        {appliedCoupon.code}
                       </strong>{" "}
                       applied!
                     </span>
@@ -355,7 +336,7 @@ export default function CartDrawer() {
 
                 {discount > 0 && (
                   <div className="flex items-center justify-between text-[#c88389]">
-                    <span>Discount ({appliedCoupon})</span>
+                    <span>Discount ({appliedCoupon?.code})</span>
                     <span className="font-semibold text-sm">
                       -{formatPrice(discount)}
                     </span>

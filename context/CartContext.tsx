@@ -37,6 +37,16 @@ export interface CartShippingOption {
   isDefault: boolean;
 }
 
+export interface AppliedCouponInfo {
+  code: string;
+  description?: string;
+  discountType: "percentage" | "fixed" | "free_shipping";
+  discountValue: number;
+  discountAmount: number;
+  isFreeShipping: boolean;
+  couponId?: string;
+}
+
 interface CartContextType {
   items: CartItem[];
   addToCart: (item: Omit<CartItem, "id"> & { id?: string }) => void;
@@ -56,6 +66,13 @@ interface CartContextType {
   setShippingCountry: (country: string) => void;
   shippingFee: number;
   isLoadingShipping: boolean;
+  // Unified coupon engine
+  appliedCoupon: AppliedCouponInfo | null;
+  applyCoupon: (code: string) => Promise<{ success: boolean; error?: string }>;
+  removeCoupon: () => void;
+  couponError: string | null;
+  setCouponError: (error: string | null) => void;
+  isApplyingCoupon: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -213,9 +230,138 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [totalPrice, shippingCountry, selectedCurrency?.countryCode]);
 
-  // Shipping fee derived from the database-selected shipping method
+  // Coupon Engine State
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCouponInfo | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState<boolean>(false);
+
+  const applyCoupon = async (
+    code: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    const clean = (code || "").trim().toUpperCase();
+    if (!clean) {
+      setCouponError("Please enter a coupon code.");
+      return { success: false, error: "Please enter a coupon code." };
+    }
+
+    setIsApplyingCoupon(true);
+    setCouponError(null);
+
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: clean,
+          items: items.map((i) => ({
+            productId: i.productId || i.id,
+            name: i.name,
+            price: i.price,
+            quantity: i.quantity,
+          })),
+          subtotal: totalPrice,
+          currency: selectedCurrency?.code || "USD",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success || !data.valid) {
+        const errMsg = data.error || "Invalid coupon code.";
+        setCouponError(errMsg);
+        return { success: false, error: errMsg };
+      }
+
+      const info: AppliedCouponInfo = {
+        code: data.code,
+        description: data.description,
+        discountType: data.discountType,
+        discountValue: data.discountValue,
+        discountAmount: data.discountAmount,
+        isFreeShipping: Boolean(data.isFreeShipping),
+        couponId: data.couponId,
+      };
+
+      setAppliedCoupon(info);
+      setCouponError(null);
+      return { success: true };
+    } catch (err: any) {
+      const errMsg = err?.message || "Failed to apply coupon. Please try again.";
+      setCouponError(errMsg);
+      return { success: false, error: errMsg };
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponError(null);
+  };
+
+  // Re-evaluate applied coupon automatically when cart items, quantities, or currency change
+  useEffect(() => {
+    if (!appliedCoupon) return;
+
+    if (items.length === 0) {
+      setAppliedCoupon(null);
+      return;
+    }
+
+    let isCancelled = false;
+
+    async function recheckCoupon() {
+      try {
+        const res = await fetch("/api/coupons/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: appliedCoupon!.code,
+            items: items.map((i) => ({
+              productId: i.productId || i.id,
+              name: i.name,
+              price: i.price,
+              quantity: i.quantity,
+            })),
+            subtotal: totalPrice,
+            currency: selectedCurrency?.code || "USD",
+          }),
+        });
+
+        const data = await res.json();
+
+        if (isCancelled) return;
+
+        if (res.ok && data.success && data.valid) {
+          setAppliedCoupon({
+            code: data.code,
+            description: data.description,
+            discountType: data.discountType,
+            discountValue: data.discountValue,
+            discountAmount: data.discountAmount,
+            isFreeShipping: Boolean(data.isFreeShipping),
+            couponId: data.couponId,
+          });
+          setCouponError(null);
+        } else {
+          setCouponError(data.error || "Coupon conditions no longer met.");
+          setAppliedCoupon(null);
+        }
+      } catch (e) {
+        console.warn("Could not re-validate coupon:", e);
+      }
+    }
+
+    recheckCoupon();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [items, totalPrice, selectedCurrency?.code]);
+
+  // Shipping fee derived from database-selected method, or FREE if coupon grants free shipping
   const shippingFee =
-    items.length === 0
+    items.length === 0 || appliedCoupon?.isFreeShipping
       ? 0
       : selectedShippingMethod
       ? selectedShippingMethod.isFree
@@ -243,6 +389,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         setShippingCountry,
         shippingFee,
         isLoadingShipping,
+        appliedCoupon,
+        applyCoupon,
+        removeCoupon,
+        couponError,
+        setCouponError,
+        isApplyingCoupon,
       }}
     >
       {children}

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { FiX } from "react-icons/fi";
 
 export default function AuthModal() {
   const {
@@ -18,6 +19,7 @@ export default function AuthModal() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resetSent, setResetSent] = useState(false);
@@ -53,6 +55,12 @@ export default function AuthModal() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (isSignUp && password !== confirmPassword) {
+      setError("Passwords do not match. Please verify and try again.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -64,6 +72,7 @@ export default function AuthModal() {
       closeAuthModal();
       setEmail("");
       setPassword("");
+      setConfirmPassword("");
     } catch (err: any) {
       setError(cleanErrorMessage(err));
     } finally {
@@ -119,7 +128,7 @@ export default function AuthModal() {
             </h2>
             <p className="text-xs text-[#8a7060] mt-0.5">
               {isSignUp
-                ? "Join CherryBrush for saved orders & wishlist"
+                ? "Sign up to get exclusive deals and offers"
                 : "Sign in to manage your orders & profile"}
             </p>
           </div>
@@ -129,7 +138,7 @@ export default function AuthModal() {
             className="w-8 h-8 rounded-full bg-white border border-[#e8c0c8] text-[#3d2b1f] flex items-center justify-center text-sm font-bold hover:bg-[#c88389] hover:text-white hover:border-[#c88389] transition-all cursor-pointer"
             aria-label="Close"
           >
-            ✕
+            <FiX />
           </button>
         </div>
 
@@ -229,6 +238,24 @@ export default function AuthModal() {
               />
             </div>
 
+            {/* Confirm Password Field (Only shown during Account Creation) */}
+            {isSignUp && (
+              <div>
+                <label className="block text-xs font-semibold text-[#3d2b1f] mb-1">
+                  Confirm Password *
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  minLength={6}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#e8c0c8] bg-white text-xs sm:text-sm text-[#3d2b1f] placeholder:text-[#8a7060]/40 focus:outline-none focus:border-[#c88389] transition-all"
+                />
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={isLoading}
@@ -254,7 +281,12 @@ export default function AuthModal() {
                 Already have an account?{" "}
                 <button
                   type="button"
-                  onClick={() => openAuthModal("signin")}
+                  onClick={() => {
+                    setError(null);
+                    setPassword("");
+                    setConfirmPassword("");
+                    openAuthModal("signin");
+                  }}
                   className="font-bold text-[#c88389] hover:underline cursor-pointer"
                 >
                   Sign In
@@ -265,10 +297,15 @@ export default function AuthModal() {
                 Don't have an account yet?{" "}
                 <button
                   type="button"
-                  onClick={() => openAuthModal("signup")}
+                  onClick={() => {
+                    setError(null);
+                    setPassword("");
+                    setConfirmPassword("");
+                    openAuthModal("signup");
+                  }}
                   className="font-bold text-[#c88389] hover:underline cursor-pointer"
                 >
-                  Create one now
+                  Create Account
                 </button>
               </p>
             )}

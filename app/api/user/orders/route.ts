@@ -21,7 +21,9 @@ export async function GET(req: NextRequest) {
     const headerEmail = req.headers.get("x-user-email");
     const headerUserId = req.headers.get("x-user-id");
 
-    const userEmail = (session?.email || headerEmail || "").toLowerCase().trim();
+    const userEmail = (session?.email || headerEmail || "")
+      .toLowerCase()
+      .trim();
     const userId = session?.userId || headerUserId || "";
 
     if (!userEmail && !userId) {
@@ -30,7 +32,7 @@ export async function GET(req: NextRequest) {
           success: false,
           error: "Unauthorized: Please sign in to view your orders.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -60,18 +62,13 @@ export async function GET(req: NextRequest) {
       const searchRegex = new RegExp(trimmed, "i");
       filter.$and = [
         {
-          $or: [
-            { orderNumber: searchRegex },
-            { "items.name": searchRegex },
-          ],
+          $or: [{ orderNumber: searchRegex }, { "items.name": searchRegex }],
         },
       ];
     }
 
     // 3. Fetch orders sorted newest first
-    const orders = await Order.find(filter)
-      .sort({ createdAt: -1 })
-      .lean();
+    const orders = await Order.find(filter).sort({ createdAt: -1 }).lean();
 
     return NextResponse.json({
       success: true,
@@ -82,7 +79,7 @@ export async function GET(req: NextRequest) {
     console.error("GET /api/user/orders error:", error);
     return NextResponse.json(
       { success: false, error: error.message || "Failed to load orders" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

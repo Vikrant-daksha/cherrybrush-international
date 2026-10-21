@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import Order from "@/lib/order.model";
 import { createOrderSnapshot } from "@/lib/orderService";
 import { createPayPalOrder } from "@/lib/paypal";
+import { getUserSession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,20 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB();
     const body = await req.json();
+
+    // Authentication Guard: Ensure user is logged in
+    const session = await getUserSession(req);
+    const userId = session?.userId || body.customer?.userId;
+
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "You must be signed in to checkout and place an order.",
+        },
+        { status: 401 }
+      );
+    }
 
     let orderDoc: any;
 

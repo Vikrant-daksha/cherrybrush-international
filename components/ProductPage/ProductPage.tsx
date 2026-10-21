@@ -168,7 +168,11 @@ export default function ProductPage({
     .map((s: any) => {
       if (typeof s === "string") {
         const trimmed = s.trim();
-        return { id: trimmed.toLowerCase(), name: trimmed, shapeType: trimmed.toLowerCase() };
+        return {
+          id: trimmed.toLowerCase(),
+          name: trimmed,
+          shapeType: trimmed.toLowerCase(),
+        };
       }
       return s;
     })
@@ -318,11 +322,23 @@ export default function ProductPage({
       image:
         data.images?.[selectedImageIndex] || data.images?.[0] || "/product.png",
       collection: data.subtitle,
-      shape: selectedShape || validShapes[0]?.name || validShapes[0]?.id || undefined,
+      shape:
+        selectedShape ||
+        validShapes[0]?.name ||
+        validShapes[0]?.id ||
+        undefined,
       length: selectedLength || validLengths[0] || undefined,
       size: selectedSize || validSizes[0] || undefined,
-      color: selectedColor || validColors[0]?.name || validColors[0]?.color || undefined,
-      shade: selectedColor || validColors[0]?.name || validColors[0]?.color || undefined,
+      color:
+        selectedColor ||
+        validColors[0]?.name ||
+        validColors[0]?.color ||
+        undefined,
+      shade:
+        selectedColor ||
+        validColors[0]?.name ||
+        validColors[0]?.color ||
+        undefined,
       quantity: quantity,
     });
 
@@ -435,7 +451,7 @@ export default function ProductPage({
             <button
               type="button"
               onClick={handleWishlistClick}
-              className="absolute top-2 right-2 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-[#edd8de] bg-white hover:bg-[#faedf0] hover:border-[#d88998] flex items-center justify-center transition-all duration-200 shadow-sm shrink-0 focus:outline-none hover:scale-105 active:scale-95"
+              className="absolute top-2 right-2 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-[#edd8de] bg-white hover:bg-[#faedf0] hover:border-[#d88998] flex items-center justify-center transition-all duration-200 shadow-sm shrink-0 focus:outline-none active:scale-95"
               aria-label={
                 isWishlisted ? "Remove from wishlist" : "Add to wishlist"
               }
@@ -464,7 +480,7 @@ export default function ProductPage({
               priority
               loading="eager"
               sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover transition-all duration-500 hover:scale-105"
+              className="object-cover transition-all duration-500"
             />
           </div>
         </section>

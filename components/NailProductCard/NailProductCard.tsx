@@ -700,8 +700,16 @@ export default function NailProductCard({
                   shape: selectedShape || validShapes[0] || undefined,
                   length: selectedLength || validLengths[0] || undefined,
                   size: selectedNailSize || validNailSizes[0] || undefined,
-                  color: selectedColor || validColors[0]?.label || validColors[0]?.hex || undefined,
-                  shade: selectedColor || validColors[0]?.label || validColors[0]?.hex || undefined,
+                  color:
+                    selectedColor ||
+                    validColors[0]?.label ||
+                    validColors[0]?.hex ||
+                    undefined,
+                  shade:
+                    selectedColor ||
+                    validColors[0]?.label ||
+                    validColors[0]?.hex ||
+                    undefined,
                   quantity: 1,
                 });
                 onAddToBag?.();

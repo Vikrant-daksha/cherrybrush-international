@@ -36,9 +36,15 @@ export const connectDB = async () => {
       throw new Error("MONGO_URI environment variable is missing");
     }
     cached.promise = mongoose
-      .connect(MONGO_URI, { bufferCommands: false })
+      .connect(MONGO_URI, {
+        bufferCommands: false,
+        maxPoolSize: Number(process.env.MONGODB_MAX_POOL_SIZE) || 50,
+        minPoolSize: Number(process.env.MONGODB_MIN_POOL_SIZE) || 10,
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+      })
       .then((mongooseInstance) => {
-        console.log("✅ MongoDB Connected Successfully");
+        console.log("✅ MongoDB Connected Successfully (Pool: max 50, min 10)");
         cached.conn = mongooseInstance;
         return mongooseInstance;
       });
