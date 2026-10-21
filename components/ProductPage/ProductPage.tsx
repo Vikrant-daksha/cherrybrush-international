@@ -29,6 +29,8 @@ export interface ProductFeature {
 
 export interface ProductData {
   id?: string;
+  _id?: string;
+  slug?: string;
   name: string;
   subtitle: string;
   collection?: string;
@@ -161,19 +163,45 @@ export default function ProductPage({
   const { formatPrice } = useCurrency();
   const searchParams = useSearchParams();
 
-  // Filter incoming variants to avoid ghost or empty strings
-  const validShapes = (product.shapes || []).filter(
-    (s) => s && (s.name?.trim?.() || s.id?.trim?.()),
-  );
-  const validLengths = (product.lengths || []).filter(
-    (l) => typeof l === "string" && l.trim().length > 0,
-  );
-  const validSizes = (product.sizes || []).filter(
-    (sz) => typeof sz === "string" && sz.trim().length > 0,
-  );
-  const validColors = (product.colors || []).filter(
-    (c) => c && (c.color?.trim?.() || c.name?.trim?.() || c.id?.trim?.()),
-  );
+  // Filter and normalize incoming variants to avoid ghost or empty strings
+  const validShapes = (product.shapes || [])
+    .map((s: any) => {
+      if (typeof s === "string") {
+        const trimmed = s.trim();
+        return { id: trimmed.toLowerCase(), name: trimmed, shapeType: trimmed.toLowerCase() };
+      }
+      return s;
+    })
+    .filter((s: any) => s && (s.name?.trim?.() || s.id?.trim?.()));
+
+  const validLengths = (product.lengths || [])
+    .map((l: any) => {
+      if (typeof l === "string") return l.trim();
+      return l?.name || l?.label || l?.value || "";
+    })
+    .filter((l: string) => typeof l === "string" && l.length > 0);
+
+  const validSizes = (product.sizes || [])
+    .map((sz: any) => {
+      if (typeof sz === "string") return sz.trim();
+      return sz?.name || sz?.label || sz?.value || "";
+    })
+    .filter((sz: string) => typeof sz === "string" && sz.length > 0);
+
+  const validColors = (product.colors || [])
+    .map((c: any, i: number) => {
+      if (typeof c === "string") {
+        return { id: `c-${i}`, name: c, color: c };
+      }
+      const colorHex = c.hex || c.color || "#c88389";
+      const colorName = c.label || c.name || c.shade || colorHex;
+      return {
+        id: c.id || `c-${i}`,
+        name: colorName,
+        color: colorHex,
+      };
+    })
+    .filter((c: any) => c && (c.color?.trim?.() || c.name?.trim?.()));
 
   // Use product data directly with strictly validated variants
   const data: Partial<ProductData> = {
@@ -281,7 +309,7 @@ export default function ProductPage({
   const handleAddToBag = () => {
     setIsAdding(true);
     addToCart({
-      productId: data.id || data.name || "product",
+      productId: data._id || data.id || data.slug || data.name || "product",
       name: data.name || "Press-On Nail Set",
       price:
         typeof data.price === "number"
@@ -290,11 +318,11 @@ export default function ProductPage({
       image:
         data.images?.[selectedImageIndex] || data.images?.[0] || "/product.png",
       collection: data.subtitle,
-      shape: selectedShape || undefined,
-      length: selectedLength || undefined,
-      size: selectedSize || undefined,
-      color: selectedColor || undefined,
-      shade: selectedColor || undefined,
+      shape: selectedShape || validShapes[0]?.name || validShapes[0]?.id || undefined,
+      length: selectedLength || validLengths[0] || undefined,
+      size: selectedSize || validSizes[0] || undefined,
+      color: selectedColor || validColors[0]?.name || validColors[0]?.color || undefined,
+      shade: selectedColor || validColors[0]?.name || validColors[0]?.color || undefined,
       quantity: quantity,
     });
 
@@ -810,6 +838,8 @@ export default function ProductPage({
             {recentProducts.map((p) => (
               <div key={p._id} className="w-full h-full">
                 <VerticalProductCard
+                  _id={p._id}
+                  slug={p.slug}
                   href={`/collection/${p.slug || p._id}`}
                   imageSrc={p.images?.[0] || "/product.png"}
                   imageAlt={p.name}

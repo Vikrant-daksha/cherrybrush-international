@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useMemo,
+  useRef,
+  useEffect,
+  useCallback,
+} from "react";
 import { useCurrency } from "@/context/CurrencyContext";
 import { CurrencyInfo } from "@/lib/currencies";
 
@@ -78,7 +84,9 @@ export default function CurrencySelector() {
 
   // Infinite scroll trigger via IntersectionObserver
   const loadMore = useCallback(() => {
-    setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filteredCurrencies.length));
+    setVisibleCount((prev) =>
+      Math.min(prev + PAGE_SIZE, filteredCurrencies.length),
+    );
   }, [filteredCurrencies.length]);
 
   useEffect(() => {
@@ -94,7 +102,7 @@ export default function CurrencySelector() {
         root: scrollContainerRef.current,
         rootMargin: "150px", // Pre-fetch before user hits the very bottom
         threshold: 0.1,
-      }
+      },
     );
 
     const target = sentinelRef.current;
@@ -149,7 +157,7 @@ export default function CurrencySelector() {
       ══════════════════════════════════════════════════════ */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:justify-end sm:p-6 bg-black/35 backdrop-blur-[2px] transition-opacity duration-200"
+          className="fixed inset-0 z-50 flex items-end  justify-center sm:justify-end sm:p-6 bg-black/35 backdrop-blur-[2px] transition-opacity duration-200"
           onClick={() => setIsModalOpen(false)}
         >
           {/* Card Container */}

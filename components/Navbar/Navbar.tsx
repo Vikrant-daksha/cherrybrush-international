@@ -5,7 +5,18 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
-import { FiSearch, FiX, FiArrowRight } from "react-icons/fi";
+import { useAuth } from "@/context/AuthContext";
+import { useCurrency } from "@/context/CurrencyContext";
+import { getCloudinaryThumbnail } from "@/lib/imageLoader";
+import {
+  FiSearch,
+  FiX,
+  FiArrowRight,
+  FiUser,
+  FiPackage,
+  FiLogOut,
+  FiShield,
+} from "react-icons/fi";
 
 export interface NavbarProps {
   brandName?: string;
@@ -35,9 +46,32 @@ export default function Navbar({ className = "" }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { totalItems, toggleCart } = useCart();
+  const { formatPrice } = useCurrency();
+  const { user, mongoUser, logout, openAuthModal } = useAuth();
+  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const accountDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [user?.photoURL]);
 
   const isAdminRoute = pathname?.startsWith("/admin");
+
+  // Close account dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        accountDropdownRef.current &&
+        !accountDropdownRef.current.contains(event.target as Node)
+      ) {
+        setAccountDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Handle navbar background blur on scroll
   useEffect(() => {
@@ -123,7 +157,9 @@ export default function Navbar({ className = "" }: NavbarProps) {
     }
   };
 
-  if (isAdminRoute) {
+  const isCheckoutRoute = pathname?.startsWith("/checkout");
+
+  if (isAdminRoute || isCheckoutRoute) {
     return null;
   }
 
@@ -214,7 +250,7 @@ export default function Navbar({ className = "" }: NavbarProps) {
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Search products..."
-                  className="bg-transparent border-none text-xs text-[#3d2b1f] placeholder:text-neutral-400 focus:outline-none w-36 sm:w-56"
+                  className="bg-transparent border-none text-xs text-[#3d2b1f] placeholder:text-neutral-400 focus:outline-none w-36 sm:w-28"
                 />
                 <button
                   type="button"
@@ -229,7 +265,7 @@ export default function Navbar({ className = "" }: NavbarProps) {
             {/* ── 400ms Debounced 4-Max Dropdown Suggestions ── */}
             {searchOpen &&
               (debouncedQuery.trim().length > 0 || suggestions.length > 0) && (
-                <div className="absolute top-full right-0 mt-3 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-neutral-100 overflow-hidden text-neutral-800 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute top-full right-0 mt-3 w-80 sm:w-70 bg-white rounded-2xl shadow-2xl border border-neutral-100 overflow-hidden text-neutral-800 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
                   {/* <div className="p-3 border-b border-neutral-100 flex items-center justify-between bg-[#fdf0f2]/50">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#c88389]">
                     Live Suggestions (Max 4)
@@ -251,12 +287,17 @@ export default function Navbar({ className = "" }: NavbarProps) {
                           }}
                           className="flex items-center gap-3 p-3 hover:bg-[#fafaf7] transition-colors group"
                         >
-                          <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-[#fdf0f2] flex-shrink-0 border border-[#f0c5d2]">
+                          <div className="relative w-12 h-12 rounded-md overflow-hidden bg-[#fdf0f2] flex-shrink-0 border border-[#f0c5d2]">
                             <Image
-                              src={p.images?.[0] || "/product.png"}
+                              src={getCloudinaryThumbnail(
+                                p.images?.[0],
+                                100,
+                                100,
+                              )}
                               alt={p.name}
                               fill
-                              className="object-cover group-hover:scale-105 transition-transform"
+                              sizes="48px"
+                              className="object-cover transition-transform"
                             />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -267,7 +308,7 @@ export default function Navbar({ className = "" }: NavbarProps) {
                               {p.name}
                             </h4>
                             <p className="text-xs font-bold text-[#3d2b1f] mt-0.5">
-                              ₹{p.price}
+                              {formatPrice(p.price)}
                             </p>
                           </div>
                           <FiArrowRight className="w-4 h-4 text-neutral-300 group-hover:text-[#c88389] group-hover:translate-x-1 transition-all" />
@@ -295,26 +336,112 @@ export default function Navbar({ className = "" }: NavbarProps) {
               )}
           </div>
 
-          {/* Account Icon */}
-          <Link
-            href="/admin/login"
-            aria-label="Account"
-            className="p-1.5 hover:text-[#c25d65] transition-transform duration-200 hover:scale-110 focus:outline-none"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {/* Account Icon / Dropdown */}
+          <div className="relative" ref={accountDropdownRef}>
+            <button
+              type="button"
+              onClick={() => {
+                if (user) {
+                  setAccountDropdownOpen(!accountDropdownOpen);
+                } else {
+                  openAuthModal("signin");
+                }
+              }}
+              aria-label={user ? "Account Menu" : "Sign In / Register"}
+              className="p-1.5 hover:text-[#c25d65] transition-transform duration-200 hover:scale-110 focus:outline-none flex items-center justify-center cursor-pointer"
             >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </Link>
+              {user ? (
+                <div className="w-6 h-6 rounded-full bg-[#fdf0f2] border border-[#c88389] text-[#c88389] text-xs font-bold flex items-center justify-center overflow-hidden">
+                  {user.photoURL && !avatarError ? (
+                    <img
+                      src={user.photoURL}
+                      alt={user.displayName || "User"}
+                      referrerPolicy="no-referrer"
+                      onError={() => setAvatarError(true)}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span>
+                      {(user.displayName || user.email || "U")[0].toUpperCase()}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              )}
+            </button>
+
+            {/* Authenticated User Dropdown Menu */}
+            {user && accountDropdownOpen && (
+              <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl border border-[#f0e0e5] p-2 text-neutral-800 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="px-3 py-2 border-b border-[#f5e6e8]">
+                  <p className="text-xs font-bold text-[#3d2b1f] truncate">
+                    {user.displayName || "Customer"}
+                  </p>
+                  <p className="text-[11px] text-[#8a7060] truncate">
+                    {user.email}
+                  </p>
+                </div>
+
+                <div className="py-1 space-y-0.5">
+                  <Link
+                    href="/profile"
+                    onClick={() => setAccountDropdownOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#3d2b1f] hover:bg-[#faf5f6] hover:text-[#c88389] rounded-xl transition-colors"
+                  >
+                    <FiUser className="w-3.5 h-3.5 text-[#c88389]" />
+                    <span>Profile Settings</span>
+                  </Link>
+
+                  <Link
+                    href="/orders"
+                    onClick={() => setAccountDropdownOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#3d2b1f] hover:bg-[#faf5f6] hover:text-[#c88389] rounded-xl transition-colors"
+                  >
+                    <FiPackage className="w-3.5 h-3.5 text-[#c88389]" />
+                    <span>View Orders</span>
+                  </Link>
+
+                  {mongoUser?.role === "admin" && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setAccountDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#c88389] hover:bg-[#fdf0f2] rounded-xl transition-colors"
+                    >
+                      <FiShield className="w-3.5 h-3.5" />
+                      <span>Admin Dashboard</span>
+                    </Link>
+                  )}
+                </div>
+
+                <div className="pt-1 border-t border-[#f5e6e8]">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setAccountDropdownOpen(false);
+                      await logout();
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer text-left"
+                  >
+                    <FiLogOut className="w-3.5 h-3.5" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Shopping Bag Icon */}
           <button
@@ -338,7 +465,7 @@ export default function Navbar({ className = "" }: NavbarProps) {
               <path d="M16 10a4 4 0 0 1-8 0" />
             </svg>
             {totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#c88389] text-[#c25d65]/60 text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs animate-pulse">
+              <span className="absolute px-1.5 py-px -top-1.5 -right-1 bg-[#c25d65] text-white text-center text-[10px] font-bold rounded-full flex items-center justify-center">
                 {totalItems}
               </span>
             )}
@@ -391,6 +518,63 @@ export default function Navbar({ className = "" }: NavbarProps) {
               {link.label}
             </Link>
           ))}
+
+          {/* Mobile Auth Button */}
+          <div className="pt-2 border-t border-white/10">
+            {user ? (
+              <div className="space-y-2">
+                <p className="text-xs text-white/80 font-medium truncate">
+                  Signed in as <strong>{user.displayName || user.email}</strong>
+                </p>
+                <div className="flex gap-2">
+                  <Link
+                    href="/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex-1 py-2 text-center rounded-lg bg-white/10 text-white text-xs font-semibold hover:bg-white/20 transition-colors"
+                  >
+                    Profile
+                  </Link>
+                  <Link
+                    href="/orders"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex-1 py-2 text-center rounded-lg bg-[#c88389] text-white text-xs font-semibold hover:bg-[#b57278] transition-colors"
+                  >
+                    My Orders
+                  </Link>
+                </div>
+                {mongoUser?.role === "admin" && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block w-full py-2 text-center rounded-lg bg-white text-[#3d2b1f] text-xs font-bold transition-colors"
+                  >
+                    Admin Dashboard
+                  </Link>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    logout();
+                  }}
+                  className="w-full py-2 rounded-lg bg-red-500/20 text-red-300 text-xs font-semibold hover:bg-red-500/30 transition-colors cursor-pointer"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  openAuthModal("signin");
+                }}
+                className="w-full py-2.5 rounded-xl bg-[#c88389] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#b57278] transition-colors"
+              >
+                Sign In / Register
+              </button>
+            )}
+          </div>
         </div>
       )}
     </header>

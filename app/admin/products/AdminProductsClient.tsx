@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/components/Navbar/Navbar";
 import CreateProductForm from "@/app/admin/product/create/CreateProductForm";
 import { AdminPayload } from "@/lib/auth";
+import { useCurrency } from "@/context/CurrencyContext";
 import {
   CiCirclePlus,
   CiGrid41,
@@ -23,6 +24,23 @@ interface AdminProductsClientProps {
 export default function AdminProductsClient({
   admin,
 }: AdminProductsClientProps) {
+  const { storeBaseCurrency } = useCurrency();
+
+  // Dynamically resolve base currency symbol with zero hardcoded tables
+  const baseCurrencySymbol = useMemo(() => {
+    try {
+      const parts = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: storeBaseCurrency,
+      }).formatToParts(0);
+      return (
+        parts.find((p) => p.type === "currency")?.value || storeBaseCurrency
+      );
+    } catch {
+      return storeBaseCurrency;
+    }
+  }, [storeBaseCurrency]);
+
   const [activeTab, setActiveTab] = useState<"manage" | "create">("manage");
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,6 +116,31 @@ export default function AdminProductsClient({
       </header>
 
       <main className="max-w-7xl mx-auto p-4 md:p-8">
+        {/* Workspace Quick-Nav Tabs */}
+        <div className="flex flex-wrap items-center gap-2 p-1.5 bg-white/80 rounded-2xl border border-[#f0e0e5] shadow-xs mb-8 w-fit">
+          <Link
+            href="/admin?tab=orders"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-[#6b4f3a] hover:text-[#3d2b1f] hover:bg-[#fdf0f2] transition-all"
+          >
+            Orders
+          </Link>
+          <Link
+            href="/admin?tab=users"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-[#6b4f3a] hover:text-[#3d2b1f] hover:bg-[#fdf0f2] transition-all"
+          >
+            Users
+          </Link>
+          <Link
+            href="/admin?tab=settings"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-[#6b4f3a] hover:text-[#3d2b1f] hover:bg-[#fdf0f2] transition-all"
+          >
+            Store Settings
+          </Link>
+          <span className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-[#3d2b1f] text-white shadow-xs">
+            Products
+          </span>
+        </div>
+
         {/* Header Title & Navigation Tabs */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
@@ -282,7 +325,7 @@ export default function AdminProductsClient({
                       <tr className="bg-[#fdf0f2]/60 border-b border-[#f0e0e5] text-[11px] font-bold uppercase tracking-wider text-[#3d2b1f]">
                         <th className="py-3.5 px-4">Product</th>
                         <th className="py-3.5 px-4">Collection</th>
-                        <th className="py-3.5 px-4">Price</th>
+                        <th className="py-3.5 px-4">Price ({storeBaseCurrency})</th>
                         <th className="py-3.5 px-4">Variants</th>
                         <th className="py-3.5 px-4 text-right">Actions</th>
                       </tr>
@@ -336,7 +379,10 @@ export default function AdminProductsClient({
                           {/* Price & Badge */}
                           <td className="py-3 px-4">
                             <p className="font-serif font-bold text-[#3d2b1f] text-sm">
-                              ₹{p.price}
+                              {baseCurrencySymbol}
+                              {typeof p.price === "number"
+                                ? p.price.toLocaleString()
+                                : p.price}
                             </p>
                             {p.badge && (
                               <span className="inline-block text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-[#fdf0f2] text-[#c88389] border border-[#e8c0c8]">

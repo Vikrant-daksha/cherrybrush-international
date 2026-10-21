@@ -4,22 +4,25 @@ interface RateLimitRecord {
 
 const rateLimitMap = new Map<string, RateLimitRecord>();
 
-const MAX_REQUESTS = 100; // 100 requests
+const MAX_REQUESTS = 200; // 100 requests
 const WINDOW_MS = 60 * 1000; // 1 minute (60,000 ms)
 
 // Cleanup stale IP records every 5 minutes
 if (typeof setInterval !== "undefined") {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [ip, record] of rateLimitMap.entries()) {
-      record.timestamps = record.timestamps.filter(
-        (time) => now - time < WINDOW_MS,
-      );
-      if (record.timestamps.length === 0) {
-        rateLimitMap.delete(ip);
+  setInterval(
+    () => {
+      const now = Date.now();
+      for (const [ip, record] of rateLimitMap.entries()) {
+        record.timestamps = record.timestamps.filter(
+          (time) => now - time < WINDOW_MS,
+        );
+        if (record.timestamps.length === 0) {
+          rateLimitMap.delete(ip);
+        }
       }
-    }
-  }, 5 * 60 * 1000);
+    },
+    5 * 60 * 1000,
+  );
 }
 
 export interface RateLimitResult {

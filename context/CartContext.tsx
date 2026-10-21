@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export interface CartItem {
   id: string;
@@ -18,6 +19,24 @@ export interface CartItem {
   quantity: number;
 }
 
+export interface CartShippingOption {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  currency: string;
+  isFree: boolean;
+  estimatedDelivery: {
+    min: number;
+    max: number;
+    unit: string;
+    label: string;
+  };
+  carrier: string;
+  isDefault: boolean;
+}
+
 interface CartContextType {
   items: CartItem[];
   addToCart: (item: Omit<CartItem, "id"> & { id?: string }) => void;
@@ -29,6 +48,14 @@ interface CartContextType {
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
   toggleCart: () => void;
+  // Dynamic shipping options fetched from MongoDB
+  shippingMethods: CartShippingOption[];
+  selectedShippingMethod: CartShippingOption | null;
+  setSelectedShippingMethod: (method: CartShippingOption) => void;
+  shippingCountry: string;
+  setShippingCountry: (country: string) => void;
+  shippingFee: number;
+  isLoadingShipping: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -38,9 +65,24 @@ const CART_STORAGE_KEY = "cherrybrush_cart_v1";
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const { selectedCurrency } = useCurrency();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [shippingCountry, setShippingCountry] = useState<string>(
+    () => selectedCurrency?.countryCode || "ALL"
+  );
+  const [shippingMethods, setShippingMethods] = useState<CartShippingOption[]>([]);
+  const [selectedShippingMethod, setSelectedShippingMethod] =
+    useState<CartShippingOption | null>(null);
+  const [isLoadingShipping, setIsLoadingShipping] = useState<boolean>(false);
+
+  // Sync shippingCountry if currency changes
+  useEffect(() => {
+    if (selectedCurrency?.countryCode) {
+      setShippingCountry(selectedCurrency.countryCode);
+    }
+  }, [selectedCurrency?.countryCode]);
 
   // Load cart from localStorage on client mount
   useEffect(() => {
@@ -130,6 +172,57 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     0,
   );
 
+  // Load eligible shipping methods from MongoDB whenever cart total or currency changes
+  useEffect(() => {
+    let isMounted = true;
+    async function loadShippingMethods() {
+      try {
+        setIsLoadingShipping(true);
+        const country = shippingCountry || selectedCurrency?.countryCode || "ALL";
+        const res = await fetch(
+          `/api/shipping?country=${country}&subtotal=${totalPrice}`
+        );
+        if (!res.ok) return;
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data) && isMounted) {
+          const methods: CartShippingOption[] = json.data;
+          setShippingMethods(methods);
+
+          setSelectedShippingMethod((prev) => {
+            if (prev) {
+              const matched = methods.find(
+                (m) => m.id === prev.id || m.slug === prev.slug
+              );
+              if (matched) return matched;
+            }
+            const defaultMethod = methods.find((m) => m.isDefault);
+            return defaultMethod || methods[0] || null;
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch shipping methods from db", err);
+      } finally {
+        if (isMounted) setIsLoadingShipping(false);
+      }
+    }
+
+    loadShippingMethods();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [totalPrice, shippingCountry, selectedCurrency?.countryCode]);
+
+  // Shipping fee derived from the database-selected shipping method
+  const shippingFee =
+    items.length === 0
+      ? 0
+      : selectedShippingMethod
+      ? selectedShippingMethod.isFree
+        ? 0
+        : selectedShippingMethod.price
+      : 0;
+
   return (
     <CartContext.Provider
       value={{
@@ -143,6 +236,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         isCartOpen,
         setIsCartOpen,
         toggleCart,
+        shippingMethods,
+        selectedShippingMethod,
+        setSelectedShippingMethod,
+        shippingCountry,
+        setShippingCountry,
+        shippingFee,
+        isLoadingShipping,
       }}
     >
       {children}

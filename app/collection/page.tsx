@@ -267,6 +267,8 @@ function CollectionContent() {
               {currentProducts.map((p) => (
                 <div key={p._id} className="w-full block">
                   <VerticalProductCard
+                    _id={p._id}
+                    slug={p.slug}
                     href={`/collection/${p.slug || p._id}`}
                     imageSrc={p.images?.[0] || "/product.png"}
                     imageAlt={p.name}

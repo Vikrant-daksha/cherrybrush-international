@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["boxcar-anaconda-paddling.ngrok-free.dev"],
   images: {
     loader: "custom",
     loaderFile: "./lib/imageLoader.ts",

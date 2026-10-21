@@ -227,6 +227,8 @@ const Home = async () => {
                   className="flex-shrink-0 w-[88vw] sm:w-[580px] md:w-[680px] lg:w-[740px] aspect-[1.65/1] transition-transform hover:-translate-y-1 block"
                 >
                   <NailProductCard
+                    _id={p._id}
+                    slug={p.slug}
                     href={`/collection/${p.slug || p._id}`}
                     imageSrc={p.images?.[0] || "/product.png"}
                     name={p.name}
@@ -279,6 +281,8 @@ const Home = async () => {
                   className="w-72 flex-shrink-0 block transition-transform hover:-translate-y-1"
                 >
                   <VerticalProductCard
+                    _id={p._id}
+                    slug={p.slug}
                     href={`/collection/${p.slug || p._id}`}
                     imageSrc={p.images?.[0] || "/product.png"}
                     imageAlt={p.name}

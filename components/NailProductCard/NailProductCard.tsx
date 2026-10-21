@@ -16,6 +16,9 @@ export interface ColorSwatch {
 }
 
 export interface NailProductCardProps {
+  id?: string;
+  _id?: string;
+  slug?: string;
   href?: string;
   imageSrc: string;
   imageAlt?: string;
@@ -114,6 +117,9 @@ const SIZE_CONFIGS = {
 };
 
 export default function NailProductCard({
+  id,
+  _id,
+  slug,
   href,
   imageSrc,
   imageAlt = "Nail product",
@@ -686,16 +692,16 @@ export default function NailProductCard({
                 e.preventDefault();
                 e.stopPropagation();
                 addToCart({
-                  productId: name,
+                  productId: _id || id || slug || name,
                   name: name,
                   price: parseFloat(String(price).replace(/[^0-9.]/g, "")) || 0,
                   image: imageSrc,
                   collection: collection,
-                  shape: selectedShape || undefined,
-                  length: selectedLength || undefined,
-                  size: selectedNailSize || undefined,
-                  color: selectedColor || undefined,
-                  shade: selectedColor || undefined,
+                  shape: selectedShape || validShapes[0] || undefined,
+                  length: selectedLength || validLengths[0] || undefined,
+                  size: selectedNailSize || validNailSizes[0] || undefined,
+                  color: selectedColor || validColors[0]?.label || validColors[0]?.hex || undefined,
+                  shade: selectedColor || validColors[0]?.label || validColors[0]?.hex || undefined,
                   quantity: 1,
                 });
                 onAddToBag?.();

@@ -14,6 +14,9 @@ export interface ColorSwatch {
 }
 
 export interface NailProductCardProps {
+  id?: string;
+  _id?: string;
+  slug?: string;
   href?: string;
   imageSrc: string;
   imageAlt?: string;
@@ -76,6 +79,9 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 export default function VerticalProductCard({
+  id,
+  _id,
+  slug,
   href,
   imageSrc,
   imageAlt = "Nail Product",
@@ -129,12 +135,24 @@ export default function VerticalProductCard({
     validColors[0]?.label || validColors[0]?.hex || "",
   );
 
-  const [popupShape, setPopupShape] = useState<string>("");
-  const [popupLength, setPopupLength] = useState<string>("");
-  const [popupSize, setPopupSize] = useState<string>("");
+  const [popupShape, setPopupShape] = useState<string>(
+    () => availableShapes[0] || "",
+  );
+  const [popupLength, setPopupLength] = useState<string>(
+    () => availableLengths[0] || "",
+  );
+  const [popupSize, setPopupSize] = useState<string>(
+    () => availableSizes[0] || "",
+  );
   const [popupShade, setPopupShade] = useState<string>(
     selectedColor || validColors[0]?.label || validColors[0]?.hex || "",
   );
+
+  useEffect(() => {
+    if (!popupShape && availableShapes[0]) setPopupShape(availableShapes[0]);
+    if (!popupLength && availableLengths[0]) setPopupLength(availableLengths[0]);
+    if (!popupSize && availableSizes[0]) setPopupSize(availableSizes[0]);
+  }, [availableShapes, availableLengths, availableSizes, popupShape, popupLength, popupSize]);
 
   const getDynamicHref = (baseHref?: string) => {
     if (!baseHref) return "";
@@ -148,24 +166,33 @@ export default function VerticalProductCard({
   const handleOpenAddToCartModal = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setPopupShape((prev) => prev || availableShapes[0] || "");
+    setPopupLength((prev) => prev || availableLengths[0] || "");
+    setPopupSize((prev) => prev || availableSizes[0] || "");
     setPopupShade(
-      selectedColor || validColors[0]?.label || validColors[0]?.hex || "",
+      popupShade || selectedColor || validColors[0]?.label || validColors[0]?.hex || "",
     );
     setIsModalOpen(true);
   };
 
   const handleConfirmAddToCart = () => {
+    const finalShade =
+      popupShade || selectedColor || validColors[0]?.label || validColors[0]?.hex || undefined;
+    const finalShape = popupShape || availableShapes[0] || undefined;
+    const finalLength = popupLength || availableLengths[0] || undefined;
+    const finalSize = popupSize || availableSizes[0] || undefined;
+
     addToCart({
-      productId: name,
+      productId: _id || id || slug || name,
       name: name,
       price: parseFloat(String(price).replace(/[^0-9.]/g, "")) || 0,
       image: imageSrc,
       collection: collection,
-      color: popupShade || selectedColor || undefined,
-      shade: popupShade || selectedColor || undefined,
-      shape: popupShape || undefined,
-      length: popupLength || undefined,
-      size: popupSize || undefined,
+      color: finalShade,
+      shade: finalShade,
+      shape: finalShape,
+      length: finalLength,
+      size: finalSize,
       quantity: 1,
     });
     setIsModalOpen(false);

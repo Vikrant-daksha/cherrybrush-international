@@ -20,6 +20,10 @@ export default function CartDrawer() {
     clearCart,
     totalItems,
     totalPrice,
+    shippingMethods,
+    selectedShippingMethod,
+    setSelectedShippingMethod,
+    shippingFee,
   } = useCart();
   const { formatPrice } = useCurrency();
 
@@ -31,11 +35,19 @@ export default function CartDrawer() {
 
   if (!isCartOpen) return null;
 
-  // Shipping & discount calculations
+  // Shipping & discount calculations driven directly by MongoDB
   const discount = Math.round(totalPrice * couponDiscountRate);
-  const baseShipping = 99; // Standard flat shipping
-  const isFreeShipping = appliedCoupon === "FREESHIP" || totalPrice >= 999;
-  const shipping = items.length === 0 ? 0 : isFreeShipping ? 0 : baseShipping;
+  const isFreeShipping =
+    appliedCoupon === "FREESHIP" || (selectedShippingMethod?.isFree ?? false);
+  const currentShippingCost =
+    items.length === 0
+      ? 0
+      : isFreeShipping
+        ? 0
+        : selectedShippingMethod
+          ? selectedShippingMethod.price
+          : shippingFee;
+  const shipping = currentShippingCost;
   const finalTotal = Math.max(0, totalPrice - discount + shipping);
 
   const handleApplyCoupon = () => {
@@ -158,7 +170,7 @@ export default function CartDrawer() {
                           {item.name}
                         </h3>
                         <span className="font-bold text-sm sm:text-base text-[#3d2b1f] shrink-0">
-                          ₹{item.price * item.quantity}
+                          {formatPrice(item.price * item.quantity)}
                         </span>
                       </div>
 
@@ -234,13 +246,13 @@ export default function CartDrawer() {
                     {/* Quantity Controls & Red Trash Icon */}
                     <div className="flex items-center gap-2.5 mt-1">
                       {/* Quantity Selector Pill */}
-                      <div className="inline-flex items-center border border-[#e8c0c8] rounded-xl bg-white px-1 py-0.5 shadow-2xs">
+                      <div className="inline-flex items-center border border-[#e8c0c8] rounded-xl bg-white shadow-2xs overflow-hidden">
                         <button
                           type="button"
                           onClick={() =>
                             updateQuantity(item.id, item.quantity - 1)
                           }
-                          className="w-6 h-6 flex items-center justify-center text-xs font-semibold text-[#3d2b1f] hover:bg-[#fdf0f2] rounded-lg transition-colors cursor-pointer"
+                          className="w-6 h-full py-1.5 flex items-center justify-center text-xs font-semibold text-[#3d2b1f] hover:bg-[#fdf0f2]  transition-colors cursor-pointer"
                           aria-label="Decrease quantity"
                         >
                           -
@@ -253,7 +265,7 @@ export default function CartDrawer() {
                           onClick={() =>
                             updateQuantity(item.id, item.quantity + 1)
                           }
-                          className="w-6 h-6 flex items-center justify-center text-xs font-semibold text-[#3d2b1f] hover:bg-[#fdf0f2] rounded-lg transition-colors cursor-pointer"
+                          className="w-6 h-full py-1.5 flex items-center justify-center text-xs font-semibold text-[#3d2b1f] hover:bg-[#fdf0f2] transition-colors cursor-pointer"
                           aria-label="Increase quantity"
                         >
                           +
@@ -351,7 +363,12 @@ export default function CartDrawer() {
                 )}
 
                 <div className="flex items-center justify-between">
-                  <span>Shipping</span>
+                  <span>
+                    Shipping
+                    {selectedShippingMethod
+                      ? ` (${selectedShippingMethod.name})`
+                      : ""}
+                  </span>
                   <span className="font-semibold text-sm text-[#3d2b1f]">
                     {shipping === 0 ? "FREE" : formatPrice(shipping)}
                   </span>
@@ -376,12 +393,13 @@ export default function CartDrawer() {
                 {/* Primary Button: Checkout · Total */}
                 <button
                   type="button"
-                  onClick={() =>
-                    alert(`Proceeding to checkout with total ${formatPrice(finalTotal)}`)
-                  }
+                  onClick={() => {
+                    setIsCartOpen(false);
+                    router.push("/checkout");
+                  }}
                   className="w-full py-3.5 rounded-xl bg-[#3d2b1f] hover:bg-[#281b13] active:scale-[0.99] text-white text-xs sm:text-sm font-bold tracking-wide shadow-md transition-all flex items-center justify-center cursor-pointer"
                 >
-                  <span>Checkout · {formatPrice(finalTotal)}</span>
+                  <span>Checkout</span>
                 </button>
 
                 {/* Secondary Button: View Full Cart */}
