@@ -1,7 +1,7 @@
 'use client';
 
 import styles from './WardrobeShelf.module.css';
-import ProductCard from '@/components/ProductCard/ProductCard';
+import { ShelfProductTile as ProductCard } from '@/components/products';
 import { ShelfCategory } from '@/lib/products';
 
 interface WardrobeShelfProps {

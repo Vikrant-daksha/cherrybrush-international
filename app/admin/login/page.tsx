@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#fdf0f2] via-[#faf5f6] to-[#f5e6e8] flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white/90 backdrop-blur-md rounded-3xl p-8 md:p-10 border border-[#f0e0e5] shadow-[0_16px_56px_rgba(160,100,120,0.12)]">
+      <div className="w-full max-w-md bg-white/90 backdrop-blur-md rounded-3xl p-5 sm:p-8 md:p-10 border border-[#f0e0e5] shadow-[0_16px_56px_rgba(160,100,120,0.12)]">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="relative inline-block w-16 h-16 rounded-2xl overflow-hidden mb-4 shadow-sm border border-[#e8c0c8]">

@@ -6,23 +6,8 @@ import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useCurrency } from "@/context/CurrencyContext";
 import { getCloudinaryThumbnail } from "@/lib/imageLoader";
-import VerticalProductCard from "@/components/verticalProductCard/verticalProductCard";
+import { YouMightAlsoLike } from "@/components/products";
 import { slugify } from "@/lib/slug";
-
-interface RecommendedProduct {
-  _id: string;
-  id?: string;
-  name: string;
-  slug?: string;
-  price: number;
-  originalPrice?: number;
-  collection?: string;
-  images?: string[];
-  image?: string;
-  rating?: number;
-  reviewCount?: number;
-  badge?: string;
-}
 
 export default function CartPage() {
   const {
@@ -47,25 +32,6 @@ export default function CartPage() {
   const { formatPrice } = useCurrency();
 
   const [couponCode, setCouponCode] = useState("");
-  const [recommendations, setRecommendations] = useState<RecommendedProduct[]>(
-    [],
-  );
-
-  // Fetch real products for "You Might Also Like" section
-  useEffect(() => {
-    fetch("/api/products")
-      .then((res) => res.json())
-      .then((data) => {
-        if (
-          data?.products &&
-          Array.isArray(data.products) &&
-          data.products.length > 0
-        ) {
-          setRecommendations(data.products.slice(0, 4));
-        }
-      })
-      .catch((err) => console.error("Failed to load recommendations:", err));
-  }, []);
 
   // Dynamic shipping and discount calculations
   const discount = appliedCoupon ? appliedCoupon.discountAmount : 0;
@@ -96,61 +62,6 @@ export default function CartPage() {
     removeCoupon();
     setCouponCode("");
   };
-
-  // Fallback items if recommendations are still loading or empty
-  const displayRecommendations: RecommendedProduct[] =
-    recommendations.length > 0
-      ? recommendations
-      : [
-          {
-            _id: "rec1",
-            name: "Cherry Blossom Pearl Set",
-            slug: "cherry-blossom-pearl-set",
-            price: 200,
-            originalPrice: 235,
-            collection: "Handcrafted · Almond",
-            image: "/product.png",
-            rating: 4.8,
-            reviewCount: 196,
-            badge: "Bestseller",
-          },
-          {
-            _id: "rec2",
-            name: "French Tip Luxe Oval",
-            slug: "french-tip-luxe-oval",
-            price: 220,
-            originalPrice: 259,
-            collection: "Classic · Oval",
-            image: "/product.png",
-            rating: 5.0,
-            reviewCount: 197,
-            badge: "Bestseller",
-          },
-          {
-            _id: "rec3",
-            name: "Velvet Rose Chrome",
-            slug: "velvet-rose-chrome",
-            price: 110,
-            originalPrice: 129,
-            collection: "Metallic · Coffin",
-            image: "/product.png",
-            rating: 4.5,
-            reviewCount: 198,
-            badge: "Bestseller",
-          },
-          {
-            _id: "rec4",
-            name: "Nude Glaze Shimmer",
-            slug: "nude-glaze-shimmer",
-            price: 130,
-            originalPrice: 153,
-            collection: "Minimal · Square",
-            image: "/product.png",
-            rating: 4.7,
-            reviewCount: 199,
-            badge: "Bestseller",
-          },
-        ];
 
   return (
     <main className="flex-1 min-h-screen bg-zinc-50/50 pt-20 sm:pt-24 pb-16">
@@ -207,8 +118,12 @@ export default function CartPage() {
             {/* Left Column: Cart Items List */}
             <div className="lg:col-span-2 space-y-3">
               {items.map((item) => {
-                const itemSlug = item.name ? slugify(item.name) : item.productId;
-                const itemHref = itemSlug ? `/collection/${itemSlug}` : "/collection";
+                const itemSlug = item.name
+                  ? slugify(item.name)
+                  : item.productId;
+                const itemHref = itemSlug
+                  ? `/collection/${itemSlug}`
+                  : "/collection";
 
                 return (
                   <div
@@ -237,115 +152,179 @@ export default function CartPage() {
                           >
                             {item.name}
                           </Link>
-                        <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          {item.collection && (
-                            <span className="text-xs text-zinc-500">
-                              {item.collection}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 mt-3 flex-wrap tracking-wider">
-                          {item.size && (
-                            <span className="text-[10px] px-2 py-0.5 bg-[#c87a8a] text-white rounded-sm font-semibold">
-                              Size: {item.size}
-                            </span>
-                          )}
-                          {item.length && (
-                            <span className="text-[10px] px-2 py-0.5 bg-[#c87a8a] text-white rounded-sm font-semibold">
-                              Length: {item.length}
-                            </span>
-                          )}
-                          {item.shape && (
-                            <span className="text-[10px] px-2 py-0.5 bg-[#c87a8a] text-white rounded-sm font-semibold">
-                              Shape: {item.shape}
-                            </span>
-                          )}
-                          {(item.color || item.shade) && (
-                            <span className="text-[10px] px-2 py-0.5 bg-[#c87a8a] text-white rounded-sm font-semibold inline-flex items-center gap-1">
-                              {(item.color || item.shade)?.startsWith("#") && (
-                                <span
-                                  className="w-2 h-2 rounded-full inline-block border border-black/10 shrink-0"
-                                  style={{
-                                    backgroundColor: item.color || item.shade,
-                                  }}
-                                />
-                              )}
-                              Color: {item.color || item.shade}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            {item.collection && (
+                              <span className="text-xs text-zinc-500">
+                                {item.collection}
+                              </span>
+                            )}
+                          </div>
+                          {/* Mobile: Clean 2-line variant text without pills (< md) */}
+                          <div className="md:hidden mt-2 space-y-0.5 text-xs text-[#6b4f3a]/85 leading-tight">
+                            {(item.size || item.length) && (
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                {item.size && (
+                                  <span>
+                                    Size:{" "}
+                                    <span className="font-semibold text-zinc-900">
+                                      {item.size}
+                                    </span>
+                                  </span>
+                                )}
+                                {item.size && item.length && (
+                                  <span className="text-zinc-300">·</span>
+                                )}
+                                {item.length && (
+                                  <span>
+                                    Length:{" "}
+                                    <span className="font-semibold text-zinc-900">
+                                      {item.length}
+                                    </span>
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            {(item.shape || item.color || item.shade) && (
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                {item.shape && (
+                                  <span>
+                                    Shape:{" "}
+                                    <span className="font-semibold text-zinc-900">
+                                      {item.shape}
+                                    </span>
+                                  </span>
+                                )}
+                                {item.shape && (item.color || item.shade) && (
+                                  <span className="text-zinc-300">·</span>
+                                )}
+                                {(item.color || item.shade) && (
+                                  <span className="inline-flex items-center gap-1">
+                                    Shade:
+                                    {(item.color || item.shade)?.startsWith(
+                                      "#",
+                                    ) && (
+                                      <span
+                                        className="w-2.5 h-2.5 rounded-full inline-block border border-black/10 shrink-0"
+                                        style={{
+                                          backgroundColor:
+                                            item.color || item.shade,
+                                        }}
+                                      />
+                                    )}
+                                    <span className="font-semibold text-zinc-900">
+                                      {item.color || item.shade}
+                                    </span>
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
 
-                      <button
-                        onClick={() => removeFromCart(item.id)}
-                        className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-red-50 hover:text-red-500 transition-all cursor-pointer"
-                        aria-label="Remove"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <polyline points="3 6 5 6 21 6"></polyline>
-                          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
-                          <path d="M10 11v6"></path>
-                          <path d="M14 11v6"></path>
-                          <path d="M9 6V4h6v2"></path>
-                        </svg>
-                      </button>
-                    </div>
+                          {/* Desktop: Original Pills (md+) */}
+                          <div className="hidden md:flex items-center gap-2 mt-3 flex-wrap tracking-wider">
+                            {item.size && (
+                              <span className="text-[10px] px-2 py-0.5 bg-[#c87a8a] text-white rounded-sm font-semibold">
+                                Size: {item.size}
+                              </span>
+                            )}
+                            {item.length && (
+                              <span className="text-[10px] px-2 py-0.5 bg-[#c87a8a] text-white rounded-sm font-semibold">
+                                Length: {item.length}
+                              </span>
+                            )}
+                            {item.shape && (
+                              <span className="text-[10px] px-2 py-0.5 bg-[#c87a8a] text-white rounded-sm font-semibold">
+                                Shape: {item.shape}
+                              </span>
+                            )}
+                            {(item.color || item.shade) && (
+                              <span className="text-[10px] px-2 py-0.5 bg-[#c87a8a] text-white rounded-sm font-semibold inline-flex items-center gap-1">
+                                {(item.color || item.shade)?.startsWith(
+                                  "#",
+                                ) && (
+                                  <span
+                                    className="w-2 h-2 rounded-full inline-block border border-black/10 shrink-0"
+                                    style={{
+                                      backgroundColor: item.color || item.shade,
+                                    }}
+                                  />
+                                )}
+                                Color: {item.color || item.shade}
+                              </span>
+                            )}
+                          </div>
+                        </div>
 
-                    <div className="flex items-center justify-between mt-3">
-                      {/* Stepper */}
-                      <div className="flex items-center border border-zinc-200 rounded-xl overflow-hidden h-9 bg-white">
                         <button
-                          onClick={() =>
-                            updateQuantity(item.id, item.quantity - 1)
-                          }
-                          className="w-9 h-full flex items-center justify-center text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors cursor-pointer"
+                          onClick={() => removeFromCart(item.id)}
+                          className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-50 hover:text-red-500 transition-all cursor-pointer"
+                          aria-label="Remove"
                         >
                           <svg
-                            className="w-3.5 h-3.5"
+                            className="w-4 h-4"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
-                            strokeWidth="2.5"
+                            strokeWidth="2"
                           >
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                          </svg>
-                        </button>
-                        <span className="w-9 text-center text-sm font-medium text-zinc-900">
-                          {item.quantity}
-                        </span>
-                        <button
-                          onClick={() =>
-                            updateQuantity(item.id, item.quantity + 1)
-                          }
-                          className="w-9 h-full flex items-center justify-center text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors cursor-pointer"
-                        >
-                          <svg
-                            className="w-3.5 h-3.5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                          >
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                            <path d="M10 11v6"></path>
+                            <path d="M14 11v6"></path>
+                            <path d="M9 6V4h6v2"></path>
                           </svg>
                         </button>
                       </div>
 
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-zinc-900">
-                          {formatPrice(item.price * item.quantity)}
-                        </p>
+                      <div className="flex items-center justify-between mt-3">
+                        {/* Stepper */}
+                        <div className="flex items-center border border-zinc-200 rounded-xl overflow-hidden h-9 bg-white">
+                          <button
+                            onClick={() =>
+                              updateQuantity(item.id, item.quantity - 1)
+                            }
+                            className="w-9 h-full flex items-center justify-center text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors cursor-pointer"
+                          >
+                            <svg
+                              className="w-3.5 h-3.5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                            >
+                              <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                          </button>
+                          <span className="w-9 text-center text-sm font-medium text-zinc-900">
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() =>
+                              updateQuantity(item.id, item.quantity + 1)
+                            }
+                            className="w-9 h-full flex items-center justify-center text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors cursor-pointer"
+                          >
+                            <svg
+                              className="w-3.5 h-3.5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                            >
+                              <line x1="12" y1="5" x2="12" y2="19"></line>
+                              <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                          </button>
+                        </div>
+
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-zinc-900">
+                            {formatPrice(item.price * item.quantity)}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
                 );
               })}
 
@@ -526,16 +505,11 @@ export default function CartPage() {
         )}
 
         {/* You Might Also Like Section */}
-        <div className="mt-14 pt-10 border-t border-zinc-200">
-          <h3 className="text-base font-semibold text-zinc-900 mb-5">
-            You Might Also Like
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {displayRecommendations.map((prod) => (
-              <VerticalProductCard key={prod._id} product={prod} />
-            ))}
-          </div>
-        </div>
+        <YouMightAlsoLike
+          variant="cart"
+          excludeIds={items.map((i) => i.productId || i.id)}
+          limit={4}
+        />
       </div>
     </main>
   );

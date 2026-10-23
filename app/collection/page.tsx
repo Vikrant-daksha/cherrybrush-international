@@ -8,7 +8,7 @@ import React, {
   Suspense,
 } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import VerticalProductCard from "@/components/verticalProductCard/verticalProductCard";
+import { VerticalProductCard } from "@/components/products";
 import { FiSearch, FiChevronLeft, FiChevronRight, FiX } from "react-icons/fi";
 import Navbar from "@/components/Navbar/Navbar";
 import Footer from "@/components/Footer/Footer";
@@ -263,7 +263,7 @@ function CollectionContent() {
         ) : (
           <>
             {/* ── 5-Column x 4-Row Product Grid (20 items max per page) ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
               {currentProducts.map((p) => (
                 <div key={p._id} className="w-full block">
                   <VerticalProductCard
@@ -368,8 +368,6 @@ function CollectionContent() {
           </>
         )}
       </main>
-
-      <Footer />
     </div>
   );
 }

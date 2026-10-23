@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { connectDB } from "@/lib/db";
 import Product from "@/lib/product.model";
-import ProductPage, { ProductData } from "@/components/ProductPage/ProductPage";
+import { ProductDetails as ProductPage, ProductData } from "@/components/products";
 
 interface PageProps {
   params: Promise<{ slug: string }>;

@@ -218,6 +218,9 @@ const OrderSchema = new Schema<IOrder>(
   }
 );
 
+OrderSchema.index({ createdAt: -1 });
+OrderSchema.index({ orderStatus: 1, createdAt: -1 });
+
 // Helper function to generate clean, collision-resistant order numbers
 export function generateOrderNumber(): string {
   const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");

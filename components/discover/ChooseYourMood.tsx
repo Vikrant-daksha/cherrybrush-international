@@ -19,18 +19,18 @@ export default function ChooseYourMood() {
         What are you feeling today?
       </p>
 
-      <div className="flex flex-wrap justify-center gap-6">
+      <div className="flex overflow-x-auto scrollbar-none sm:flex-wrap justify-start sm:justify-center gap-4 sm:gap-6 px-2 pb-4">
         {moods.map((mood) => (
           <div
             key={mood.label}
-            className="flex flex-col items-center gap-2 cursor-pointer group"
+            className="flex flex-col items-center gap-2 cursor-pointer group shrink-0"
           >
             {/* Arch-shaped image placeholder */}
             <div
-              className="w-56 h-72 bg-neutral-200 overflow-hidden transition-transform duration-300 group-hover:-translate-y-1"
+              className="w-40 h-56 sm:w-56 sm:h-72 bg-neutral-200 overflow-hidden transition-transform duration-300 group-hover:-translate-y-1"
               style={{ borderRadius: "9999px 9999px 1000px 1000px" }}
             />
-            <span className="text-xs tracking-widest uppercase text-neutral-600">
+            <span className="text-[11px] sm:text-xs tracking-widest uppercase text-neutral-600 font-medium">
               {mood.label}
             </span>
           </div>

@@ -18,13 +18,13 @@ export default function LovedByGirls() {
         Loved by Girls All Over the World
       </h2>
 
-      <div className="grid grid-cols-2 md:flex md:flex-wrap justify-center gap-12 md:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:flex lg:flex-wrap justify-center gap-4 sm:gap-6 lg:gap-4 px-2 sm:px-4">
         {galleryItems.map((item) => (
           <Polaroid
             key={item.id}
             imageSrc=""
             rotate={item.rotate}
-            className="w-full md:w-1/8 "
+            className="w-full md:w-[95%] lg:w-1/8 "
           />
         ))}
       </div>

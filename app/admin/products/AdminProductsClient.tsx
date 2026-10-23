@@ -117,57 +117,57 @@ export default function AdminProductsClient({
 
       <main className="max-w-7xl mx-auto p-4 md:p-8">
         {/* Workspace Quick-Nav Tabs */}
-        <div className="flex flex-wrap items-center gap-2 p-1.5 bg-white/80 rounded-2xl border border-[#f0e0e5] shadow-xs mb-8 w-fit">
+        <div className="flex items-center gap-2 p-1.5 bg-white/80 rounded-2xl border border-[#f0e0e5] shadow-xs mb-8 overflow-x-auto no-scrollbar max-w-full w-fit">
           <Link
             href="/admin?tab=orders"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-[#6b4f3a] hover:text-[#3d2b1f] hover:bg-[#fdf0f2] transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-[#6b4f3a] hover:text-[#3d2b1f] hover:bg-[#fdf0f2] transition-all whitespace-nowrap shrink-0"
           >
             Orders
           </Link>
           <Link
             href="/admin?tab=users"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-[#6b4f3a] hover:text-[#3d2b1f] hover:bg-[#fdf0f2] transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-[#6b4f3a] hover:text-[#3d2b1f] hover:bg-[#fdf0f2] transition-all whitespace-nowrap shrink-0"
           >
             Users
           </Link>
           <Link
             href="/admin?tab=settings"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-[#6b4f3a] hover:text-[#3d2b1f] hover:bg-[#fdf0f2] transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-[#6b4f3a] hover:text-[#3d2b1f] hover:bg-[#fdf0f2] transition-all whitespace-nowrap shrink-0"
           >
             Store Settings
           </Link>
-          <span className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-[#3d2b1f] text-white shadow-xs">
+          <span className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-[#3d2b1f] text-white shadow-xs whitespace-nowrap shrink-0">
             Products
           </span>
         </div>
 
         {/* Header Title & Navigation Tabs */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] font-semibold text-[#c88389] mb-1">
               Admin Workspace
             </p>
-            <h1 className="font-serif text-3xl md:text-4xl font-normal text-[#3d2b1f]">
+            <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-normal text-[#3d2b1f]">
               Product Catalogue
             </h1>
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex items-center gap-2 bg-white/80 p-1.5 rounded-2xl border border-[#f0e0e5] shadow-xs">
+          <div className="grid grid-cols-2 lg:flex items-center gap-2 bg-white/80 p-1.5 rounded-2xl border border-[#f0e0e5] shadow-xs w-full lg:w-auto">
             <button
               type="button"
               onClick={() => {
                 setEditingProduct(null);
                 setActiveTab("manage");
               }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
+              className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all text-center ${
                 activeTab === "manage" && !editingProduct
                   ? "bg-[#c88389] text-white shadow-sm"
                   : "text-[#6b4f3a] hover:bg-[#fdf0f2]"
               }`}
             >
-              <CiGrid41 className="w-4 h-4" />
-              <span>Manage Products ({products.length})</span>
+              <CiGrid41 className="w-4 h-4 shrink-0" />
+              <span className="truncate">Manage ({products.length})</span>
             </button>
 
             <button
@@ -176,14 +176,14 @@ export default function AdminProductsClient({
                 setEditingProduct(null);
                 setActiveTab("create");
               }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
+              className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all text-center ${
                 activeTab === "create" && !editingProduct
                   ? "bg-[#c88389] text-white shadow-sm"
                   : "text-[#6b4f3a] hover:bg-[#fdf0f2]"
               }`}
             >
-              <CiCirclePlus className="w-4 h-4" />
-              <span>+ Add New Product</span>
+              <CiCirclePlus className="w-4 h-4 shrink-0" />
+              <span className="truncate">+ Add Product</span>
             </button>
           </div>
         </div>
@@ -252,7 +252,7 @@ export default function AdminProductsClient({
         {activeTab === "manage" && !editingProduct && (
           <div className="space-y-6">
             {/* Search & Actions Bar */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white/90 p-4 rounded-3xl border border-[#f0e0e5] shadow-sm">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white/90 p-4 rounded-3xl border border-[#f0e0e5] shadow-sm">
               <div className="relative w-full sm:w-80">
                 <CiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#c88389]" />
                 <input
@@ -264,11 +264,11 @@ export default function AdminProductsClient({
                 />
               </div>
 
-              <div className="flex items-center gap-2 self-end sm:self-auto">
+              <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={fetchProducts}
-                  className="px-3.5 py-2.5 rounded-xl bg-[#fdf0f2] hover:bg-[#f0e0e5] border border-[#e8c0c8] text-[#c88389] text-xs font-bold flex items-center gap-1.5 transition-all"
+                  className="px-3.5 py-2.5 rounded-xl bg-[#fdf0f2] hover:bg-[#f0e0e5] border border-[#e8c0c8] text-[#c88389] text-xs font-bold flex items-center justify-center gap-1.5 transition-all"
                 >
                   <CiRedo className="w-4 h-4" />
                   <span>Refresh</span>
@@ -276,10 +276,10 @@ export default function AdminProductsClient({
                 <Link
                   href="/"
                   target="_blank"
-                  className="px-4 py-2.5 rounded-xl bg-white border border-[#e8c0c8] text-[#6b4f3a] text-xs font-bold flex items-center gap-1.5 hover:bg-[#fdf0f2] transition-all"
+                  className="px-4 py-2.5 rounded-xl bg-white border border-[#e8c0c8] text-[#6b4f3a] text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-[#fdf0f2] transition-all"
                 >
                   <CiShop className="w-4 h-4 text-[#c88389]" />
-                  <span>View Storefront</span>
+                  <span>Storefront</span>
                 </Link>
               </div>
             </div>
@@ -317,141 +317,248 @@ export default function AdminProductsClient({
                 </button>
               </div>
             ) : (
-              /* Products Grid Table */
-              <div className="bg-white/90 rounded-3xl border border-[#f0e0e5] shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-[#fdf0f2]/60 border-b border-[#f0e0e5] text-[11px] font-bold uppercase tracking-wider text-[#3d2b1f]">
-                        <th className="py-3.5 px-4">Product</th>
-                        <th className="py-3.5 px-4">Collection</th>
-                        <th className="py-3.5 px-4">Price ({storeBaseCurrency})</th>
-                        <th className="py-3.5 px-4">Variants</th>
-                        <th className="py-3.5 px-4 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#f5e6e8] text-xs">
-                      {filteredProducts.map((p) => (
-                        <tr
-                          key={p._id}
-                          className="hover:bg-[#fdf0f2]/30 transition-colors group"
-                        >
-                          {/* Image & Name */}
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-3">
-                              <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-[#e8c0c8] bg-[#fdf0f2] flex-shrink-0">
-                                <Image
-                                  src={p.images?.[0] || "/product.png"}
-                                  unoptimized
-                                  alt={p.name}
-                                  fill
-                                  className="object-cover"
-                                />
-                              </div>
-                              <div>
-                                <p className="font-bold text-[#3d2b1f] line-clamp-1">
-                                  {p.name}
-                                </p>
-                                {p.subtitle && (
-                                  <p className="text-[11px] text-[#8a7060] line-clamp-1 italic max-w-xs">
-                                    {p.subtitle}
-                                  </p>
-                                )}
-                                <p className="text-[10px] text-[#6b4f3a]/60 font-mono">
-                                  /collection/{p.slug || p._id}
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* Collection & Style */}
-                          <td className="py-3 px-4">
-                            <p className="font-medium text-[#3d2b1f]">
-                              {p.collection}
-                            </p>
-                            {p.style && (
-                              <p className="text-[10px] text-[#c88389] font-medium">
-                                {p.style}
-                              </p>
-                            )}
-                          </td>
-
-                          {/* Price & Badge */}
-                          <td className="py-3 px-4">
-                            <p className="font-serif font-bold text-[#3d2b1f] text-sm">
-                              {baseCurrencySymbol}
-                              {typeof p.price === "number"
-                                ? p.price.toLocaleString()
-                                : p.price}
-                            </p>
+              <>
+                {/* ── MOBILE / TABLET CARD DECK (< lg) ── */}
+                <div className="block lg:hidden space-y-3">
+                  {filteredProducts.map((p) => (
+                    <div
+                      key={p._id}
+                      className="bg-white/95 rounded-2xl border border-[#f0e0e5] p-4 shadow-xs space-y-3"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-[#e8c0c8] bg-[#fdf0f2] shrink-0">
+                          <Image
+                            src={p.images?.[0] || "/product.png"}
+                            unoptimized
+                            alt={p.name}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <h3 className="font-bold text-[#3d2b1f] text-sm truncate">
+                              {p.name}
+                            </h3>
                             {p.badge && (
-                              <span className="inline-block text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-[#fdf0f2] text-[#c88389] border border-[#e8c0c8]">
+                              <span className="shrink-0 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-[#fdf0f2] text-[#c88389] border border-[#e8c0c8]">
                                 {p.badge}
                               </span>
                             )}
-                          </td>
+                          </div>
+                          {p.subtitle && (
+                            <p className="text-[11px] text-[#8a7060] truncate italic mt-0.5">
+                              {p.subtitle}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs font-medium text-[#3d2b1f] bg-[#fdf0f2] px-2 py-0.5 rounded-md">
+                              {p.collection}
+                            </span>
+                            {p.style && (
+                              <span className="text-[10px] text-[#c88389] font-medium">
+                                • {p.style}
+                              </span>
+                            )}
+                          </div>
+                          <p className="font-serif font-bold text-[#3d2b1f] text-base mt-1.5">
+                            {baseCurrencySymbol}
+                            {typeof p.price === "number"
+                              ? p.price.toLocaleString()
+                              : p.price}
+                          </p>
+                        </div>
+                      </div>
 
-                          {/* Variants summary */}
-                          <td className="py-3 px-4 text-[10px] text-[#6b4f3a]/80">
-                            <div className="space-y-0.5">
-                              {p.shapes?.length > 0 && (
-                                <div>Shapes: {p.shapes.join(", ")}</div>
-                              )}
-                              {p.sizes?.length > 0 && (
-                                <div>Sizes: {p.sizes.join(", ")}</div>
-                              )}
-                              {p.lengths?.length > 0 && (
-                                <div>Lengths: {p.lengths.join(", ")}</div>
-                              )}
-                              {!p.shapes?.length &&
-                                !p.sizes?.length &&
-                                !p.lengths?.length && (
-                                  <span className="text-[#a0604a]/40 italic">
-                                    No variants
-                                  </span>
-                                )}
-                            </div>
-                          </td>
+                      {/* Variants summary */}
+                      {(p.shapes?.length > 0 || p.sizes?.length > 0 || p.lengths?.length > 0) && (
+                        <div className="flex flex-wrap gap-1.5 pt-2 border-t border-[#f5e6e8] text-[10px] text-[#6b4f3a]">
+                          {p.shapes?.length > 0 && (
+                            <span className="px-2 py-0.5 rounded-md bg-[#faf5f6] border border-[#f0e0e5]">
+                              Shapes: {p.shapes.join(", ")}
+                            </span>
+                          )}
+                          {p.sizes?.length > 0 && (
+                            <span className="px-2 py-0.5 rounded-md bg-[#faf5f6] border border-[#f0e0e5]">
+                              Sizes: {p.sizes.join(", ")}
+                            </span>
+                          )}
+                          {p.lengths?.length > 0 && (
+                            <span className="px-2 py-0.5 rounded-md bg-[#faf5f6] border border-[#f0e0e5]">
+                              Lengths: {p.lengths.join(", ")}
+                            </span>
+                          )}
+                        </div>
+                      )}
 
-                          {/* Actions */}
-                          <td className="py-3 px-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <button
-                                type="button"
-                                onClick={() => setEditingProduct(p)}
-                                className="px-3 py-1.5 rounded-lg bg-[#fdf0f2] border border-[#e8c0c8] text-[#c88389] hover:bg-[#c88389] hover:text-white font-bold flex items-center gap-1 transition-all"
-                              >
-                                <CiEdit className="w-3.5 h-3.5" />
-                                <span>Edit</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (
-                                    confirm(
-                                      `Are you sure you want to delete "${p.name}"?`,
-                                    )
-                                  ) {
-                                    handleDelete(p._id);
-                                  }
-                                }}
-                                disabled={deletingId === p._id}
-                                className="px-3 py-1.5 rounded-lg bg-red-50 border border-red-200 text-red-600 hover:bg-red-600 hover:text-white font-bold flex items-center gap-1 transition-all disabled:opacity-50"
-                              >
-                                <CiTrash className="w-3.5 h-3.5" />
-                                <span>
-                                  {deletingId === p._id ? "..." : "Delete"}
-                                </span>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      {/* Touch Action Buttons */}
+                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#f5e6e8]">
+                        <button
+                          type="button"
+                          onClick={() => setEditingProduct(p)}
+                          className="py-2.5 px-3 rounded-xl bg-[#fdf0f2] border border-[#e8c0c8] text-[#c88389] hover:bg-[#c88389] hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all"
+                        >
+                          <CiEdit className="w-4 h-4" />
+                          <span>Edit Product</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (
+                              confirm(
+                                `Are you sure you want to delete "${p.name}"?`,
+                              )
+                            ) {
+                              handleDelete(p._id);
+                            }
+                          }}
+                          disabled={deletingId === p._id}
+                          className="py-2.5 px-3 rounded-xl bg-red-50 border border-red-200 text-red-600 hover:bg-red-600 hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
+                        >
+                          <CiTrash className="w-4 h-4" />
+                          <span>{deletingId === p._id ? "..." : "Delete"}</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
+
+                {/* ── DESKTOP PRODUCTS TABLE (lg+) ── */}
+                <div className="hidden lg:block bg-white/90 rounded-3xl border border-[#f0e0e5] shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-[#fdf0f2]/60 border-b border-[#f0e0e5] text-[11px] font-bold uppercase tracking-wider text-[#3d2b1f]">
+                          <th className="py-3.5 px-4">Product</th>
+                          <th className="py-3.5 px-4">Collection</th>
+                          <th className="py-3.5 px-4">Price ({storeBaseCurrency})</th>
+                          <th className="py-3.5 px-4">Variants</th>
+                          <th className="py-3.5 px-4 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#f5e6e8] text-xs">
+                        {filteredProducts.map((p) => (
+                          <tr
+                            key={p._id}
+                            className="hover:bg-[#fdf0f2]/30 transition-colors group"
+                          >
+                            {/* Image & Name */}
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-3">
+                                <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-[#e8c0c8] bg-[#fdf0f2] flex-shrink-0">
+                                  <Image
+                                    src={p.images?.[0] || "/product.png"}
+                                    unoptimized
+                                    alt={p.name}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                </div>
+                                <div>
+                                  <p className="font-bold text-[#3d2b1f] line-clamp-1">
+                                    {p.name}
+                                  </p>
+                                  {p.subtitle && (
+                                    <p className="text-[11px] text-[#8a7060] line-clamp-1 italic max-w-xs">
+                                      {p.subtitle}
+                                    </p>
+                                  )}
+                                  <p className="text-[10px] text-[#6b4f3a]/60 font-mono">
+                                    /collection/{p.slug || p._id}
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Collection & Style */}
+                            <td className="py-3 px-4">
+                              <p className="font-medium text-[#3d2b1f]">
+                                {p.collection}
+                              </p>
+                              {p.style && (
+                                <p className="text-[10px] text-[#c88389] font-medium">
+                                  {p.style}
+                                </p>
+                              )}
+                            </td>
+
+                            {/* Price & Badge */}
+                            <td className="py-3 px-4">
+                              <p className="font-serif font-bold text-[#3d2b1f] text-sm">
+                                {baseCurrencySymbol}
+                                {typeof p.price === "number"
+                                  ? p.price.toLocaleString()
+                                  : p.price}
+                              </p>
+                              {p.badge && (
+                                <span className="inline-block text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-[#fdf0f2] text-[#c88389] border border-[#e8c0c8]">
+                                  {p.badge}
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Variants summary */}
+                            <td className="py-3 px-4 text-[10px] text-[#6b4f3a]/80">
+                              <div className="space-y-0.5">
+                                {p.shapes?.length > 0 && (
+                                  <div>Shapes: {p.shapes.join(", ")}</div>
+                                )}
+                                {p.sizes?.length > 0 && (
+                                  <div>Sizes: {p.sizes.join(", ")}</div>
+                                )}
+                                {p.lengths?.length > 0 && (
+                                  <div>Lengths: {p.lengths.join(", ")}</div>
+                                )}
+                                {!p.shapes?.length &&
+                                  !p.sizes?.length &&
+                                  !p.lengths?.length && (
+                                    <span className="text-[#a0604a]/40 italic">
+                                      No variants
+                                    </span>
+                                  )}
+                              </div>
+                            </td>
+
+                            {/* Actions */}
+                            <td className="py-3 px-4 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingProduct(p)}
+                                  className="px-3 py-1.5 rounded-lg bg-[#fdf0f2] border border-[#e8c0c8] text-[#c88389] hover:bg-[#c88389] hover:text-white font-bold flex items-center gap-1 transition-all"
+                                >
+                                  <CiEdit className="w-3.5 h-3.5" />
+                                  <span>Edit</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (
+                                      confirm(
+                                        `Are you sure you want to delete "${p.name}"?`,
+                                      )
+                                    ) {
+                                      handleDelete(p._id);
+                                    }
+                                  }}
+                                  disabled={deletingId === p._id}
+                                  className="px-3 py-1.5 rounded-lg bg-red-50 border border-red-200 text-red-600 hover:bg-red-600 hover:text-white font-bold flex items-center gap-1 transition-all disabled:opacity-50"
+                                >
+                                  <CiTrash className="w-3.5 h-3.5" />
+                                  <span>
+                                    {deletingId === p._id ? "..." : "Delete"}
+                                  </span>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         )}

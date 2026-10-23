@@ -119,7 +119,7 @@ export default function AuthModal() {
       />
 
       {/* Modal Dialog */}
-      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-[#f0e0e5] overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-md max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-[#f0e0e5] z-10 animate-in fade-in zoom-in-95 duration-200">
         {/* Header Bar */}
         <div className="relative px-7 pt-7 pb-4 bg-[#faf5f6] border-b border-[#f0e0e5] flex items-center justify-between">
           <div>

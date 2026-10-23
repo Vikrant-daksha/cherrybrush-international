@@ -22,7 +22,13 @@ import {
 } from "react-icons/fi";
 
 export default function ProfileClient() {
-  const { user, mongoUser, loading: authLoading, openAuthModal, logout } = useAuth();
+  const {
+    user,
+    mongoUser,
+    loading: authLoading,
+    openAuthModal,
+    logout,
+  } = useAuth();
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -117,7 +123,7 @@ export default function ProfileClient() {
         <Navbar brandName="Cherrybrush" className="h-20" />
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-12">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-xs text-[#a0604a]/80 mb-3">
           <Link href="/" className="hover:text-[#c88389] transition-colors">
@@ -137,7 +143,8 @@ export default function ProfileClient() {
               Sign in to manage your profile
             </h2>
             <p className="text-xs sm:text-sm text-[#7a6054]">
-              Sign in to view your order history, manage your contact details, and enjoy an expedited luxury checkout experience.
+              Sign in to view your order history, manage your contact details,
+              and enjoy an expedited luxury checkout experience.
             </p>
             <button
               type="button"
@@ -280,7 +287,8 @@ export default function ProfileClient() {
                   Personal Information
                 </h3>
                 <p className="text-xs text-[#7a6054] mt-0.5">
-                  Update your contact details so we can keep you informed on your shipments.
+                  Update your contact details so we can keep you informed on
+                  your shipments.
                 </p>
               </div>
 
@@ -364,7 +372,9 @@ export default function ProfileClient() {
             {/* 4. Quick Navigation Bar to Store & Admin */}
             <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl bg-[#faf5f6] border border-[#f0c5d2]/60 text-xs">
               <div>
-                <p className="font-bold text-[#3d2b1f]">Need to place a new order?</p>
+                <p className="font-bold text-[#3d2b1f]">
+                  Need to place a new order?
+                </p>
                 <p className="text-[11px] text-[#8a7060]">
                   Browse our handcrafted collections of luxury press-on sets.
                 </p>

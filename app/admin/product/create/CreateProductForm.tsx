@@ -4,8 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import NailProductCard from "@/components/NailProductCard/NailProductCard";
-import VerticalProductCard from "@/components/verticalProductCard/verticalProductCard";
+import { NailProductCard, VerticalProductCard } from "@/components/products";
 import { AdminPayload } from "@/lib/auth";
 import { slugify } from "@/lib/slug";
 import { useCurrency } from "@/context/CurrencyContext";
@@ -59,10 +58,14 @@ export default function CreateProductForm({
   const [price, setPrice] = useState<number | "">("");
   const [subtitle, setSubtitle] = useState("");
   const [description, setDescription] = useState("");
+  const [previewCardType, setPreviewCardType] = useState<"featured" | "normal">(
+    "featured",
+  );
 
   // Currency & Real-time Conversions State
   const { rates, storeBaseCurrency, setStoreBaseCurrency } = useCurrency();
-  const [adminBaseCurrency, setAdminBaseCurrency] = useState<string>(storeBaseCurrency);
+  const [adminBaseCurrency, setAdminBaseCurrency] =
+    useState<string>(storeBaseCurrency);
   const [isSavingCurrency, setIsSavingCurrency] = useState(false);
   const [currencyNotice, setCurrencyNotice] = useState<string | null>(null);
 
@@ -105,7 +108,9 @@ export default function CreateProductForm({
         style: "currency",
         currency: adminBaseCurrency,
       }).formatToParts(0);
-      return parts.find((p) => p.type === "currency")?.value || adminBaseCurrency;
+      return (
+        parts.find((p) => p.type === "currency")?.value || adminBaseCurrency
+      );
     } catch {
       return adminBaseCurrency;
     }
@@ -119,9 +124,22 @@ export default function CreateProductForm({
       return [];
     }
 
-    const popularCodes = ["USD", "EUR", "GBP", "CAD", "AUD", "AED", "SAR", "JPY", "INR", "SGD", "CHF"];
+    const popularCodes = [
+      "USD",
+      "EUR",
+      "GBP",
+      "CAD",
+      "AUD",
+      "AED",
+      "SAR",
+      "JPY",
+      "INR",
+      "SGD",
+      "CHF",
+    ];
     const baseRate =
-      rates[adminBaseCurrency] || (adminBaseCurrency === "USD" ? 1 : rates["INR"] || 1);
+      rates[adminBaseCurrency] ||
+      (adminBaseCurrency === "USD" ? 1 : rates["INR"] || 1);
 
     return popularCodes
       .filter((code) => code !== adminBaseCurrency && rates[code])
@@ -185,10 +203,6 @@ export default function CreateProductForm({
   const [success, setSuccess] = useState(false);
 
   // Preview Mode States
-  const [previewCardType, setPreviewCardType] = useState<
-    "horizontal" | "vertical"
-  >("horizontal");
-  const [previewSize, setPreviewSize] = useState<"sm" | "md" | "lg">("md");
 
   // Load editing product data if present
   useEffect(() => {
@@ -494,17 +508,74 @@ export default function CreateProductForm({
           </div>
         )}
 
-        {/* ── TOP PREVIEW SECTION ── */}
-        <div className="mb-8 bg-white/95 rounded-3xl p-6 border border-[#f0e0e5] shadow-sm">
-          <div className="flex flex-row sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 pb-4 border-b border-[#f5e6e8]">
-            {/* Controls: Card Type & Size */}
-            <div className="grid grid-cols-3 gap-10 self-end sm:self-auto">
-              {/* Card Type Selector */}
-              <div className="col-span-2">
-                <NailProductCard
+        {/* ── CARD PREVIEW SELECTOR (OUTSIDE CONTAINER) ── */}
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#3d2b1f] flex items-center gap-1.5">
+              <span>👁️</span> Live Card Preview
+            </span>
+            <p className="text-[11px] text-[#6b4f3a]/70">
+              Preview how this product appears across the storefront
+            </p>
+          </div>
+
+          {/* Selector Toggle */}
+          <div className="inline-flex p-1 rounded-2xl bg-white border border-[#e8c0c8] shadow-2xs self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setPreviewCardType("featured")}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                previewCardType === "featured"
+                  ? "bg-[#c88389] text-white shadow-xs"
+                  : "text-[#6b4f3a] hover:text-[#c88389] hover:bg-[#fdf0f2]"
+              }`}
+            >
+              <span>✨</span>
+              <span>Featured Card</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPreviewCardType("normal")}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                previewCardType === "normal"
+                  ? "bg-[#c88389] text-white shadow-xs"
+                  : "text-[#6b4f3a] hover:text-[#c88389] hover:bg-[#fdf0f2]"
+              }`}
+            >
+              <span>🛍️</span>
+              <span>Normal Card</span>
+            </button>
+          </div>
+        </div>
+
+        {/* ── FULL WIDTH CARD PREVIEW ── */}
+        <div className="mb-8 w-full">
+          {previewCardType === "featured" ? (
+            <div className="w-full">
+              <NailProductCard
+                imageSrc={primaryImageSrc}
+                name={name || "Product Name"}
+                collection={collection || "Collection Name"}
+                style={style || undefined}
+                badge={badge || undefined}
+                description={
+                  description ||
+                  "A soft blush ombre with shimmer details for an effortlessly elegant look."
+                }
+                price={price !== "" ? `${price}` : "799"}
+                colors={colors}
+                shapes={shapes}
+                nailSizes={sizes}
+                lengths={lengths}
+              />
+            </div>
+          ) : (
+            <div className="w-full flex justify-center py-2">
+              <div className="w-full max-w-[320px]">
+                <VerticalProductCard
                   imageSrc={primaryImageSrc}
-                  name={name || "Product Name"}
-                  collection={collection || "Collection Name"}
+                  name={name || "PRODUCT NAME"}
+                  collection={collection || "COLLECTION NAME"}
                   style={style || undefined}
                   badge={badge || undefined}
                   description={
@@ -514,33 +585,12 @@ export default function CreateProductForm({
                   price={price !== "" ? `${price}` : "799"}
                   colors={colors}
                   shapes={shapes}
-                  nailSizes={sizes}
                   lengths={lengths}
-                  size={previewSize}
+                  sizes={sizes}
                 />
               </div>
-              <div className="col-span-1">
-                <div className="w-full max-w-[280px]">
-                  <VerticalProductCard
-                    imageSrc={primaryImageSrc}
-                    name={name || "PRODUCT NAME"}
-                    collection={collection || "COLLECTION NAME"}
-                    style={style || undefined}
-                    badge={badge || undefined}
-                    description={
-                      description ||
-                      "A soft blush ombre with shimmer details for an effortlessly elegant look."
-                    }
-                    price={price !== "" ? `${price}` : "799"}
-                    colors={colors}
-                    shapes={shapes}
-                    lengths={lengths}
-                    sizes={sizes}
-                  />
-                </div>
-              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Alerts */}
@@ -585,7 +635,7 @@ export default function CreateProductForm({
         {/* ── MAIN FORM ── */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Section 1: Media Uploader (Deferred Upload) */}
-          <div className="bg-white/90 rounded-3xl p-6 border border-[#f0e0e5] shadow-sm">
+          <div className="bg-white/90 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-[#f0e0e5] shadow-sm">
             <h2 className="font-serif text-lg font-normal uppercase tracking-wide text-[#3d2b1f] mb-1 flex items-center gap-2">
               <CiImageOn className="w-5 h-5 text-[#c88389]" />
               <span>Product Images</span>
@@ -600,7 +650,7 @@ export default function CreateProductForm({
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all cursor-pointer relative group ${
+              className={`border-2 border-dashed rounded-2xl p-4 sm:p-6 text-center transition-all cursor-pointer relative group ${
                 isDragging
                   ? "border-[#c88389] bg-[#fdf0f2] scale-[1.01]"
                   : "border-[#e8c0c8] hover:border-[#c88389] bg-[#fdf0f2]/40"
@@ -684,7 +734,7 @@ export default function CreateProductForm({
           </div>
 
           {/* Section 2: Basic Information */}
-          <div className="bg-white/90 rounded-3xl p-6 border border-[#f0e0e5] shadow-sm space-y-4">
+          <div className="bg-white/90 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-[#f0e0e5] shadow-sm space-y-4">
             <h2 className="font-serif text-lg font-normal uppercase tracking-wide text-[#3d2b1f] mb-2">
               Basic Information
             </h2>
@@ -774,7 +824,9 @@ export default function CreateProductForm({
                       <select
                         value={adminBaseCurrency}
                         disabled={isSavingCurrency}
-                        onChange={(e) => handleBaseCurrencyChange(e.target.value)}
+                        onChange={(e) =>
+                          handleBaseCurrencyChange(e.target.value)
+                        }
                         className="text-xs font-bold text-[#c88389] bg-white border border-[#e8c0c8] rounded-xl px-2.5 py-1.5 pr-7 outline-none cursor-pointer hover:border-[#c88389] focus:ring-2 focus:ring-[#c88389]/20 transition-all appearance-none shadow-2xs"
                       >
                         {[
@@ -783,10 +835,16 @@ export default function CreateProductForm({
                           { code: "EUR", label: "EUR (€) — Euro" },
                           { code: "GBP", label: "GBP (£) — British Pound" },
                           { code: "CAD", label: "CAD (CA$) — Canadian Dollar" },
-                          { code: "AUD", label: "AUD (AU$) — Australian Dollar" },
+                          {
+                            code: "AUD",
+                            label: "AUD (AU$) — Australian Dollar",
+                          },
                           { code: "AED", label: "AED (AED) — UAE Dirham" },
                           { code: "SAR", label: "SAR (SAR) — Saudi Riyal" },
-                          { code: "SGD", label: "SGD (SG$) — Singapore Dollar" },
+                          {
+                            code: "SGD",
+                            label: "SGD (SG$) — Singapore Dollar",
+                          },
                           { code: "JPY", label: "JPY (¥) — Japanese Yen" },
                           { code: "CHF", label: "CHF (CHF) — Swiss Franc" },
                         ].map((c) => (
@@ -871,7 +929,8 @@ export default function CreateProductForm({
                     </div>
                   ) : (
                     <div className="py-2 text-center text-[11px] text-[#8a5d68]/80 italic">
-                      Type a price above to view real-time converted rates for USD, EUR, GBP, CAD, AUD, AED, etc.
+                      Type a price above to view real-time converted rates for
+                      USD, EUR, GBP, CAD, AUD, AED, etc.
                     </div>
                   )}
                 </div>
@@ -1042,7 +1101,8 @@ export default function CreateProductForm({
                 className="w-full px-3.5 py-2.5 rounded-xl border border-[#e8c0c8] text-sm bg-white text-[#3d2b1f] focus:ring-2 focus:ring-[#c88389]/30 focus:border-[#c88389] outline-none transition-all"
               />
               <p className="text-[10px] text-[#6b4f3a]/60 mt-1">
-                Catchy one-liner displayed on product pages, quick overlays, and cards (max 150 characters).
+                Catchy one-liner displayed on product pages, quick overlays, and
+                cards (max 150 characters).
               </p>
             </div>
 
@@ -1062,29 +1122,29 @@ export default function CreateProductForm({
           </div>
 
           {/* Section 3: Color Swatches */}
-          <div className="bg-white/90 rounded-3xl p-6 border border-[#f0e0e5] shadow-sm">
+          <div className="bg-white/90 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-[#f0e0e5] shadow-sm">
             <h2 className="font-serif text-lg font-normal uppercase tracking-wide text-[#3d2b1f] mb-3">
               Color Swatches
             </h2>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
               <input
                 type="color"
                 value={newColorHex}
                 onChange={(e) => setNewColorHex(e.target.value)}
-                className="w-10 h-10 rounded-xl border border-[#e8c0c8] cursor-pointer p-0.5 bg-white"
+                className="w-10 h-10 rounded-xl border border-[#e8c0c8] cursor-pointer p-0.5 bg-white shrink-0"
               />
               <input
                 type="text"
                 value={newColorLabel}
                 onChange={(e) => setNewColorLabel(e.target.value)}
                 placeholder="Color Name (e.g. Rose Pink)"
-                className="flex-1 min-w-[160px] px-3.5 py-2 rounded-xl border border-[#e8c0c8] text-xs bg-white outline-none focus:ring-2 focus:ring-[#c88389]/30"
+                className="flex-1 min-w-[140px] px-3.5 py-2 rounded-xl border border-[#e8c0c8] text-xs bg-white outline-none focus:ring-2 focus:ring-[#c88389]/30"
               />
               <button
                 type="button"
                 onClick={handleAddColor}
-                className="px-4 py-2 rounded-xl bg-[#c88389] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#b57278] transition-all"
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#c88389] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#b57278] transition-all text-center"
               >
                 Add Swatch
               </button>
@@ -1118,18 +1178,18 @@ export default function CreateProductForm({
           </div>
 
           {/* Section 4: Sizes, Shapes & Lengths with Autofill Presets */}
-          <div className="bg-white/90 rounded-3xl p-6 border border-[#f0e0e5] shadow-sm space-y-6">
+          <div className="bg-white/90 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-[#f0e0e5] shadow-sm space-y-6">
             <h2 className="font-serif text-lg font-normal uppercase tracking-wide text-[#3d2b1f]">
               Sizes, Shapes & Lengths
             </h2>
 
             {/* Sizes */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-[#3d2b1f]">
                   Available Sizes
                 </label>
-                <div className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center gap-1">
                   <span className="text-[10px] text-[#6b4f3a]/60 mr-1">
                     Presets:
                   </span>
@@ -1165,14 +1225,14 @@ export default function CreateProductForm({
                     addTag(newSizeInput, sizes, setSizes, setNewSizeInput))
                   }
                   placeholder="Type size and press enter or click preset above"
-                  className="flex-1 px-3.5 py-2 rounded-xl border border-[#e8c0c8] text-xs bg-white outline-none focus:ring-2 focus:ring-[#c88389]/30"
+                  className="flex-1 min-w-0 px-3.5 py-2 rounded-xl border border-[#e8c0c8] text-xs bg-white outline-none focus:ring-2 focus:ring-[#c88389]/30"
                 />
                 <button
                   type="button"
                   onClick={() =>
                     addTag(newSizeInput, sizes, setSizes, setNewSizeInput)
                   }
-                  className="px-4 py-2 rounded-xl bg-[#fdf0f2] border border-[#e8c0c8] text-[#c88389] text-xs font-bold uppercase tracking-wider hover:bg-[#f0e0e5] transition-all"
+                  className="shrink-0 px-3.5 sm:px-4 py-2 rounded-xl bg-[#fdf0f2] border border-[#e8c0c8] text-[#c88389] text-xs font-bold uppercase tracking-wider hover:bg-[#f0e0e5] transition-all"
                 >
                   + Add Size
                 </button>
@@ -1200,11 +1260,11 @@ export default function CreateProductForm({
 
             {/* Shapes */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-[#3d2b1f]">
                   Available Shapes
                 </label>
-                <div className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center gap-1">
                   <span className="text-[10px] text-[#6b4f3a]/60 mr-1">
                     Presets:
                   </span>
@@ -1240,14 +1300,14 @@ export default function CreateProductForm({
                     addTag(newShapeInput, shapes, setShapes, setNewShapeInput))
                   }
                   placeholder="Type shape and press enter or click preset above"
-                  className="flex-1 px-3.5 py-2 rounded-xl border border-[#e8c0c8] text-xs bg-white outline-none focus:ring-2 focus:ring-[#c88389]/30"
+                  className="flex-1 min-w-0 px-3.5 py-2 rounded-xl border border-[#e8c0c8] text-xs bg-white outline-none focus:ring-2 focus:ring-[#c88389]/30"
                 />
                 <button
                   type="button"
                   onClick={() =>
                     addTag(newShapeInput, shapes, setShapes, setNewShapeInput)
                   }
-                  className="px-4 py-2 rounded-xl bg-[#fdf0f2] border border-[#e8c0c8] text-[#c88389] text-xs font-bold uppercase tracking-wider hover:bg-[#f0e0e5] transition-all"
+                  className="shrink-0 px-3.5 sm:px-4 py-2 rounded-xl bg-[#fdf0f2] border border-[#e8c0c8] text-[#c88389] text-xs font-bold uppercase tracking-wider hover:bg-[#f0e0e5] transition-all"
                 >
                   + Add Shape
                 </button>
@@ -1275,11 +1335,11 @@ export default function CreateProductForm({
 
             {/* Lengths */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-[#3d2b1f]">
                   Available Lengths
                 </label>
-                <div className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center gap-1">
                   <span className="text-[10px] text-[#6b4f3a]/60 mr-1">
                     Presets:
                   </span>
@@ -1320,7 +1380,7 @@ export default function CreateProductForm({
                     ))
                   }
                   placeholder="Type length and press enter or click preset above"
-                  className="flex-1 px-3.5 py-2 rounded-xl border border-[#e8c0c8] text-xs bg-white outline-none focus:ring-2 focus:ring-[#c88389]/30"
+                  className="flex-1 min-w-0 px-3.5 py-2 rounded-xl border border-[#e8c0c8] text-xs bg-white outline-none focus:ring-2 focus:ring-[#c88389]/30"
                 />
                 <button
                   type="button"
@@ -1332,7 +1392,7 @@ export default function CreateProductForm({
                       setNewLengthInput,
                     )
                   }
-                  className="px-4 py-2 rounded-xl bg-[#fdf0f2] border border-[#e8c0c8] text-[#c88389] text-xs font-bold uppercase tracking-wider hover:bg-[#f0e0e5] transition-all"
+                  className="shrink-0 px-3.5 sm:px-4 py-2 rounded-xl bg-[#fdf0f2] border border-[#e8c0c8] text-[#c88389] text-xs font-bold uppercase tracking-wider hover:bg-[#f0e0e5] transition-all"
                 >
                   + Add Length
                 </button>
@@ -1360,12 +1420,12 @@ export default function CreateProductForm({
           </div>
 
           {/* Submit Buttons */}
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
             {onCancel && (
               <button
                 type="button"
                 onClick={onCancel}
-                className="px-6 py-4 rounded-2xl bg-white border border-[#e8c0c8] text-[#6b4f3a] text-xs font-bold uppercase tracking-[0.15em] hover:bg-[#fdf0f2] transition-all"
+                className="w-full sm:w-auto px-6 py-3.5 sm:py-4 rounded-2xl bg-white border border-[#e8c0c8] text-[#6b4f3a] text-xs font-bold uppercase tracking-[0.15em] hover:bg-[#fdf0f2] transition-all text-center"
               >
                 Cancel
               </button>
@@ -1373,7 +1433,7 @@ export default function CreateProductForm({
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 py-4 rounded-2xl bg-[#c88389] hover:bg-[#b57278] active:scale-[0.99] text-white font-sans text-xs font-bold uppercase tracking-[0.2em] shadow-lg transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+              className="w-full sm:flex-1 py-3.5 sm:py-4 rounded-2xl bg-[#c88389] hover:bg-[#b57278] active:scale-[0.99] text-white font-sans text-xs font-bold uppercase tracking-[0.2em] shadow-lg transition-all disabled:opacity-60 flex items-center justify-center gap-2"
             >
               {submitting ? (
                 <span>{submitStep || "Processing..."}</span>

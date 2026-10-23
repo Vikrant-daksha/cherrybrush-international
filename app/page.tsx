@@ -1,8 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Polaroid from "@/components/Polaroid/Polaroid";
-import NailProductCard from "@/components/NailProductCard/NailProductCard";
-import VerticalProductCard from "@/components/verticalProductCard/verticalProductCard";
+import { NailProductCard, VerticalProductCard } from "@/components/products";
 import ChooseYourMood from "@/components/discover/ChooseYourMood";
 import HowToApply from "@/components/discover/HowToApply";
 import LovedByGirls from "@/components/discover/LovedByGirls";
@@ -100,36 +99,36 @@ const Home = async () => {
       {/* ── Hero Section ── */}
       <div
         id="hero-section"
-        className="relative w-full min-h-[85vh] md:h-[85vh] select-none overflow-hidden flex flex-col md:flex-row"
+        className="relative w-full h-auto lg:h-screen select-none overflow-hidden flex flex-col md:flex-row"
       >
         {/* Text and Button Container */}
-        <div className="w-full md:w-1/2 h-1/2 md:h-full flex flex-col justify-center px-8 md:px-16 lg:px-24 text-white z-10 relative py-12 md:py-0">
-          <h1 className="font-serif text-5xl md:text-8xl font-light leading-[1.12]">
-            <div className="-mb-4">Made to</div>
-            <div className="-mb-4">Match</div>
-            <div className="-mb-4">Every</div>
-            <div className="-mb-4">Version</div>
-            <div className="-mb-4">of You.</div>
+        <div className="w-[60%] md:w-1/2 flex flex-col justify-center px-6 sm:px-8 md:px-16 md:py-24 lg:px-24 text-white relative pt-24 pb-8 z-20">
+          <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-light leading-[1.12] pointer-events-none">
+            <div className="-mb-2 sm:-mb-4">Made to</div>
+            <div className="-mb-2 sm:-mb-4">Match</div>
+            <div className="-mb-2 sm:-mb-4">Every</div>
+            <div className="-mb-2 sm:-mb-4">Version</div>
+            <div className="-mb-2 sm:-mb-4">of You.</div>
           </h1>
 
-          <p className="font-sans text-md md:text-xl text-white/90 tracking-wide mt-8 leading-relaxed font-normal">
+          <p className="font-sans text-sm sm:text-lg md:text-xl text-white/90 tracking-wide mt-6 sm:mt-8 leading-relaxed font-normal z-20 sm:z-0">
             Effortless nails.
             <br />
             Endless compliments.
           </p>
 
-          <div className="flex flex-row flex-wrap gap-4 mt-8">
+          <div className="flex flex-row flex-wrap gap-3 sm:gap-4 mt-3 sm:mt-8 z-20 sm:z-0">
             {heroProduct ? (
               <>
                 <Link
                   href={heroHref1}
-                  className="px-6 py-3.5 bg-[#c88389] hover:bg-[#b57379] text-white uppercase text-[14px] tracking-[0.08em] font-semibold transition-all duration-300 shadow-md inline-block"
+                  className="px-3 sm:px-8 py-2.5 sm:py-4.5 bg-[#c88389] hover:bg-[#b57379] text-white uppercase text-xs sm:text-[14px] tracking-[0.08em] font-semibold transition-all duration-300 shadow-md inline-block"
                 >
                   Shop Featured Set
                 </Link>
                 <Link
                   href="/collection"
-                  className="px-6 py-3.5 border border-white/30 hover:border-white/60 hover:bg-white/10 text-white uppercase text-[14px] tracking-[0.08em] font-semibold transition-all duration-300 inline-block"
+                  className="px-3 sm:px-6 py-2.5 sm:py-4.5 border border-white/30 bg-white/20 md:bg-transparent hover:border-white/60 hover:bg-white/10 text-white uppercase text-xs sm:text-[14px] tracking-[0.08em] font-semibold transition-all duration-300 inline-block"
                 >
                   Explore Collection
                 </Link>
@@ -138,13 +137,13 @@ const Home = async () => {
               <>
                 <Link
                   href="/collection"
-                  className="px-6 py-3.5 bg-[#c88389] hover:bg-[#b57379] text-white uppercase text-[14px] tracking-[0.08em] font-semibold transition-all duration-300 shadow-md inline-block"
+                  className="px-5 sm:px-6 py-3 sm:py-3.5 bg-[#c88389] hover:bg-[#b57379] text-white uppercase text-xs sm:text-[14px] tracking-[0.08em] font-semibold transition-all duration-300 shadow-md inline-block  z-20 lg:z-0"
                 >
                   Explore Collection
                 </Link>
                 <Link
                   href="/whats-included"
-                  className="px-6 py-3.5 border border-white/30 hover:border-white/60 hover:bg-white/10 text-white uppercase text-[14px] tracking-[0.08em] font-semibold transition-all duration-300 inline-block"
+                  className="px-5 sm:px-6 py-3 sm:py-3.5 border border-white/30 hover:border-white/60 hover:bg-white/10 text-white uppercase text-xs sm:text-[14px] tracking-[0.08em] font-semibold transition-all duration-300 inline-block z-20 lg:z-0"
                 >
                   What's Included
                 </Link>
@@ -154,26 +153,26 @@ const Home = async () => {
         </div>
 
         {/* Dynamic Hero Showcase */}
-        <div className="w-full md:w-1/2 h-1/2 md:h-full flex items-center justify-center z-10 relative">
+        <div className="absolute inset-0  flex items-center justify-center z-0 md:z-10 overflow-hidden md:overflow-visible">
           <img
             src="/sample_processed.png"
             alt="Hero Background"
             loading="eager"
-            className="absolute object-contain h-full right-42 top-24 z-10 filter drop-shadow-[0_20px_45px_rgba(61,43,31,0.42)] pointer-events-none"
+            className="absolute object-contain h-full -bottom-34 scale-90 left-16 sm:h-full sm:w-full md:h-full md:left-20 lg:left-80 lg:top-24 z-10 filter drop-shadow-[0_20px_45px_rgba(61,43,31,0.42)] pointer-events-none"
           />
 
           {/* Render Polaroids ONLY when actual products exist in MongoDB */}
           {heroProduct && (
             <Link
               href={heroHref1}
-              className="absolute top-32 right-48 group hover:scale-100 transition-transform duration-300"
+              className="absolute top-18 right-6 sm:top-16 sm:right-24 md:top-20 md:right-26 lg:top-32 lg:right-48 group hover:scale-100 transition-transform duration-300"
             >
               <Polaroid
                 imageSrc={heroProduct.images?.[0] || "/product.png"}
                 imageAlt={heroProduct.name}
                 caption={heroProduct.name}
                 rotate="left-hard"
-                className="w-78"
+                className="w-38 sm:w-56 md:w-58 lg:w-78"
               />
             </Link>
           )}
@@ -181,34 +180,34 @@ const Home = async () => {
           {heroProduct2 && (
             <Link
               href={heroHref2}
-              className="absolute bottom-14 right-40 group hover:scale-100 transition-transform duration-300"
+              className="absolute invisible sm:visible bottom-28 right-4 lg:bottom-14 lg:right-40 group hover:scale-100 transition-transform duration-300"
             >
               <Polaroid
                 imageSrc={heroProduct2.images?.[0] || "/product.png"}
                 imageAlt={heroProduct2.name}
                 caption={heroProduct2.name}
                 rotate="right-soft"
-                className="w-78"
+                className="w-44 sm:w-56 md:w-58 lg:w-78"
               />
             </Link>
           )}
         </div>
       </div>
 
-      <section>
+      <section className="hidden">
         <ChooseYourMood />
       </section>
 
       {hasProducts ? (
         <>
           {/* ── Section 1: End-to-End Marquee Carousel + Floating Side Arrows ── */}
-          <section className="py-16 bg-[#fafaf7] overflow-hidden">
-            <div className="px-8 md:px-16 mb-8 flex items-end justify-between">
+          <section className="py-12 md:py-16 bg-[#fafaf7] overflow-hidden">
+            <div className="px-5 sm:px-8 md:px-16 mb-6 md:mb-8 flex items-end justify-between">
               <div>
                 <p className="font-sans text-[10px] tracking-[0.2em] uppercase text-[#c88389] font-semibold mb-1">
                   Handcrafted with love
                 </p>
-                <h2 className="font-serif text-3xl md:text-4xl font-light text-[#3d2b1f] tracking-wide">
+                <h2 className="font-serif text-2xl sm:text-3xl md:text-4xl font-light text-[#3d2b1f] tracking-wide">
                   Featured Sets
                 </h2>
               </div>
@@ -220,11 +219,14 @@ const Home = async () => {
               </Link>
             </div>
 
-            <MarqueeCarousel speed={0.8} className="px-20">
+            <MarqueeCarousel
+              speed={0.8}
+              className="px-4 sm:px-10 md:px-14 lg:px-20"
+            >
               {displayFeaturedProducts?.map((p) => (
                 <div
                   key={p._id}
-                  className="flex-shrink-0 w-[88vw] sm:w-[580px] md:w-[680px] lg:w-[740px] aspect-[1.65/1] transition-transform hover:-translate-y-1 block"
+                  className="flex-shrink-0 w-[90vw] sm:w-[580px] md:w-[680px] lg:w-[740px] aspect-[1.65/1] transition-transform hover:-translate-y-1 block"
                 >
                   <NailProductCard
                     _id={p._id}
@@ -256,13 +258,13 @@ const Home = async () => {
           </section>
 
           {/* ── Section 2: Touch Drag + Floating Side Arrows (25 Products) ── */}
-          <section className="py-12 bg-[#fdfaf8]">
-            <div className="px-8 md:px-16 mb-8 flex items-end justify-between">
+          <section className="py-10 md:py-12 bg-[#fdfaf8]">
+            <div className="px-5 sm:px-8 md:px-16 mb-6 md:mb-8 flex items-end justify-between">
               <div>
                 <p className="font-sans text-[10px] tracking-[0.2em] uppercase text-[#c88389] font-semibold mb-1">
                   Popular Picks
                 </p>
-                <h2 className="font-serif text-3xl md:text-4xl font-light text-[#3d2b1f] tracking-wide">
+                <h2 className="font-serif text-2xl sm:text-3xl md:text-4xl font-light text-[#3d2b1f] tracking-wide">
                   Trending Designs
                 </h2>
               </div>
@@ -274,7 +276,7 @@ const Home = async () => {
               </Link>
             </div>
 
-            <DragScrollContainer className="flex gap-6 pb-4 px-8 md:px-16">
+            <DragScrollContainer className="flex gap-4 sm:gap-6 pb-4 px-5 sm:px-8 md:px-16">
               {products?.slice(0, 25).map((p) => (
                 <div
                   key={p._id}

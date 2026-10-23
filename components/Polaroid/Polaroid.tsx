@@ -49,7 +49,7 @@ export default function Polaroid({
         ${className}
       `}
     >
-      <div className="bg-[#f0f0f0] p-2 pb-8">
+      <div className="bg-[#f0f0f0] p-1 pb-3 sm:p-2 sm:pb-8">
         {/* Inner Image (Square Ratio) */}
         <div className="relative aspect-square w-full overflow-hidden bg-neutral-100 border border-black/[0.03] shadow-inner">
           {imageSrc.startsWith("/") || imageSrc.startsWith("http") ? (
@@ -59,7 +59,7 @@ export default function Polaroid({
               fill
               loading="eager"
               priority
-              sizes="(max-width: 768px) 100vw, 25vw"
+              sizes="(max-width: 768px) 90vw, 25vw"
               className="object-cover object-center transition-transform duration-500"
             />
           ) : (
@@ -71,7 +71,7 @@ export default function Polaroid({
 
         {/* Caption sitting in the wider bottom border */}
         {caption && (
-          <div className="mt-4 text-center select-none px-2">
+          <div className="mt-2 sm:mt-4 text-center select-none px-2">
             <p className="font-serif italic text-lg md:text-xl text-[#3d2b1f]/80 leading-snug tracking-wide">
               {caption}
             </p>

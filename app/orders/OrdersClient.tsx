@@ -85,7 +85,7 @@ export default function OrdersClient() {
     return orders.filter(
       (o) =>
         o.orderNumber?.toLowerCase().includes(q) ||
-        o.items?.some((i: any) => i.name?.toLowerCase().includes(q))
+        o.items?.some((i: any) => i.name?.toLowerCase().includes(q)),
     );
   }, [orders, searchQuery]);
 
@@ -96,14 +96,17 @@ export default function OrdersClient() {
         <Navbar brandName="Cherrybrush" className="h-20" />
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-12">
         {/* Breadcrumb / Top Bar */}
         <div className="flex items-center gap-2 text-xs text-[#a0604a]/80 mb-3">
           <Link href="/" className="hover:text-[#c88389] transition-colors">
             Home
           </Link>
           <span>/</span>
-          <Link href="/profile" className="hover:text-[#c88389] transition-colors">
+          <Link
+            href="/profile"
+            className="hover:text-[#c88389] transition-colors"
+          >
             Account
           </Link>
           <span>/</span>
@@ -117,7 +120,8 @@ export default function OrdersClient() {
               My Orders
             </h1>
             <p className="text-xs sm:text-sm text-[#7a6054] mt-1">
-              Track fulfillment status, review past purchases, and inspect item variant specifications.
+              Track fulfillment status, review past purchases, and inspect item
+              variant specifications.
             </p>
           </div>
 
@@ -149,7 +153,8 @@ export default function OrdersClient() {
               Sign in to view your orders
             </h2>
             <p className="text-xs sm:text-sm text-[#7a6054]">
-              Your orders are securely tied to your registered account. Please sign in or create an account to view and track your purchases.
+              Your orders are securely tied to your registered account. Please
+              sign in or create an account to view and track your purchases.
             </p>
             <button
               type="button"
@@ -263,7 +268,7 @@ export default function OrdersClient() {
                     order.payment?.status === "completed" ||
                     order.orderStatus === "paid";
                   const orderDate = new Date(
-                    order.createdAt
+                    order.createdAt,
                   ).toLocaleDateString("en-US", {
                     month: "short",
                     day: "numeric",
@@ -307,10 +312,10 @@ export default function OrdersClient() {
                               order.orderStatus === "delivered"
                                 ? "bg-emerald-100 text-emerald-800"
                                 : order.orderStatus === "shipped"
-                                ? "bg-blue-50 text-blue-700 border border-blue-200"
-                                : order.orderStatus === "cancelled"
-                                ? "bg-red-50 text-red-700"
-                                : "bg-purple-50 text-purple-700 border border-purple-200"
+                                  ? "bg-blue-50 text-blue-700 border border-blue-200"
+                                  : order.orderStatus === "cancelled"
+                                    ? "bg-red-50 text-red-700"
+                                    : "bg-purple-50 text-purple-700 border border-purple-200"
                             }`}
                           >
                             {order.orderStatus}
@@ -347,7 +352,8 @@ export default function OrdersClient() {
                                   {item.name}
                                 </h4>
                                 <p className="text-[11px] text-[#8a7060] mt-0.5">
-                                  Qty: {item.quantity} × {order.pricing?.currency}{" "}
+                                  Qty: {item.quantity} ×{" "}
+                                  {order.pricing?.currency}{" "}
                                   {Number(item.price).toFixed(2)}
                                 </p>
 
@@ -378,7 +384,7 @@ export default function OrdersClient() {
                               <span className="font-bold text-xs sm:text-sm text-[#3d2b1f]">
                                 {order.pricing?.currency}{" "}
                                 {Number(
-                                  item.subtotal || item.price * item.quantity
+                                  item.subtotal || item.price * item.quantity,
                                 ).toFixed(2)}
                               </span>
                             </div>
@@ -406,7 +412,9 @@ export default function OrdersClient() {
                             </span>
                             <span className="font-bold text-sm sm:text-base text-[#3d2b1f]">
                               {order.pricing?.currency}{" "}
-                              {Number(order.pricing?.totalAmount || 0).toFixed(2)}
+                              {Number(order.pricing?.totalAmount || 0).toFixed(
+                                2,
+                              )}
                             </span>
                           </div>
 
@@ -455,7 +463,9 @@ export default function OrdersClient() {
                   <FiTruck className="w-3.5 h-3.5 text-[#c88389]" />
                   <span>Delivery Address</span>
                 </p>
-                <p className="font-semibold">{selectedOrder.shippingAddress?.fullName}</p>
+                <p className="font-semibold">
+                  {selectedOrder.shippingAddress?.fullName}
+                </p>
                 <p>{selectedOrder.shippingAddress?.addressLine1}</p>
                 {selectedOrder.shippingAddress?.addressLine2 && (
                   <p>{selectedOrder.shippingAddress.addressLine2}</p>
@@ -477,7 +487,10 @@ export default function OrdersClient() {
                 </p>
                 <div className="divide-y divide-[#f5e6e8]">
                   {selectedOrder.items?.map((item: any, idx: number) => (
-                    <div key={idx} className="py-2.5 flex items-center justify-between text-xs gap-3">
+                    <div
+                      key={idx}
+                      className="py-2.5 flex items-center justify-between text-xs gap-3"
+                    >
                       <div>
                         <p className="font-semibold text-[#3d2b1f]">
                           {item.quantity}x {item.name}
@@ -485,7 +498,8 @@ export default function OrdersClient() {
                         <div className="flex flex-wrap gap-1 mt-0.5">
                           {[
                             item.length && `Length: ${item.length}`,
-                            (item.shade || item.color) && `Shade: ${item.shade || item.color}`,
+                            (item.shade || item.color) &&
+                              `Shade: ${item.shade || item.color}`,
                             item.shape && `Shape: ${item.shape}`,
                             item.size && `Size: ${item.size}`,
                           ]
@@ -502,7 +516,9 @@ export default function OrdersClient() {
                       </div>
                       <span className="font-semibold text-[#3d2b1f] shrink-0">
                         {selectedOrder.pricing?.currency}{" "}
-                        {Number(item.subtotal || item.price * item.quantity).toFixed(2)}
+                        {Number(
+                          item.subtotal || item.price * item.quantity,
+                        ).toFixed(2)}
                       </span>
                     </div>
                   ))}
@@ -515,7 +531,9 @@ export default function OrdersClient() {
                   <span className="text-[#8a7060]">Subtotal</span>
                   <span className="font-semibold">
                     {selectedOrder.pricing?.currency}{" "}
-                    {Number(selectedOrder.pricing?.itemsSubtotal || 0).toFixed(2)}
+                    {Number(selectedOrder.pricing?.itemsSubtotal || 0).toFixed(
+                      2,
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between">
